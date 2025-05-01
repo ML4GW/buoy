@@ -25,8 +25,6 @@ or Aframe does not react strongly to an event
 - Remove hardcoded data times
 
 - Figure out where to store models
-- Figure out how the config will work
-- Add README
 """
 
 

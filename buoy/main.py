@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import List, Optional, TYPE_CHECKING
+from typing import List, Optional, Union, TYPE_CHECKING
 import warnings
 
 import numpy as np
@@ -20,18 +20,13 @@ if TYPE_CHECKING:
 """
 TODO:
 - Allow specifying event string or GPS time
-- Allow for list of events/times
 - Better handle times when an event is not present,
 or Aframe does not react strongly to an event
-- Add options to save out more of the data
 - Remove hardcoded data times
 
 - Figure out where to store models
-- Make type checking consistent
 - Figure out how the config will work
-- Add README and license
-- Set up PyPI integration
-- 
+- Add README
 """
 
 
@@ -40,7 +35,7 @@ def main(
     amplfi_hl_architecture: "FlowArchitecture",
     amplfi_hlv_architecture: "FlowArchitecture",
     amplfi_parameter_sampler: "ParameterSampler",
-    event: str,
+    events: Union[str, List[str]],
     outdir: Path,
     inference_params: List[str],
     sample_rate: float,
@@ -78,12 +73,6 @@ def main(
             "a GPU."
         )
 
-    outdir = outdir / event
-    datadir = outdir / "data"
-    plotdir = outdir / "plots"
-    datadir.mkdir(parents=True, exist_ok=True)
-    plotdir.mkdir(parents=True, exist_ok=True)
-
     aframe_weights = model_dir / "aframe.pt"
     amplfi_hl_weights = model_dir / "amplfi-hl.ckpt"
     amplfi_hlv_weights = model_dir / "amplfi-hlv.ckpt"
@@ -120,116 +109,134 @@ def main(
         lowpass=lowpass,
     ).to(device)
 
-    logging.info("Fetching or loading data")
-    data, ifos, t0, event_time = get_data(
-        event=event,
-        sample_rate=sample_rate,
-        datadir=datadir,
-    )
-    data = torch.Tensor(data).double()
-    data = data.to(device)
-
-    # Compute whitened data for plotting later
-    # Use the first psd_length seconds of data
-    # to calculate the PSD and whiten the rest
-    idx = int(sample_rate * psd_length)
-    psd = spectral_density(data[..., :idx])
-    whitened = amplfi_whitener(data[..., idx:], psd).cpu().numpy()
-    whitened_start = t0 + psd_length + amplfi_fduration / 2
-    whitened_end = t0 + data.shape[-1] / sample_rate - amplfi_fduration / 2
-    whitened_times = np.arange(whitened_start, whitened_end, 1 / sample_rate)
-
     logging.info("Loading Aframe")
 
     # Load the trained models
     aframe = torch.jit.load(aframe_weights)
     aframe = aframe.to(device)
 
-    if ifos == ["H1", "L1"]:
-        logging.info("Loading AMPLFI HL model")
-        amplfi, scaler = load_amplfi(
-            amplfi_hl_architecture, amplfi_hl_weights, len(inference_params)
+    logging.info("Loading AMPLFI HL model")
+    amplfi_hl, scaler_hl = load_amplfi(
+        amplfi_hl_architecture, amplfi_hl_weights, len(inference_params)
+    )
+    amplfi_hl = amplfi_hl.to(device)
+    scaler_hl = scaler_hl.to(device)
+
+    logging.info("Loading AMPLFI HLV model")
+    amplfi_hlv, scaler_hlv = load_amplfi(
+        amplfi_hlv_architecture, amplfi_hlv_weights, len(inference_params)
+    )
+    amplfi_hlv = amplfi_hlv.to(device)
+    scaler_hlv = scaler_hlv.to(device)
+
+    if isinstance(events, str):
+        events = [events]
+    for event in events:
+        eventdir = outdir / event
+        datadir = eventdir / "data"
+        plotdir = eventdir / "plots"
+        datadir.mkdir(parents=True, exist_ok=True)
+        plotdir.mkdir(parents=True, exist_ok=True)
+
+        logging.info("Fetching or loading data")
+        data, ifos, t0, event_time = get_data(
+            event=event,
+            sample_rate=sample_rate,
+            datadir=datadir,
         )
-        amplfi = amplfi.to(device)
-        scaler = scaler.to(device)
-    else:
-        logging.info("Loading AMPLFI HLV model")
-        amplfi, scaler = load_amplfi(
-            amplfi_hlv_architecture, amplfi_hlv_weights, len(inference_params)
+        data = torch.Tensor(data).double()
+        data = data.to(device)
+
+        # Compute whitened data for plotting later
+        # Use the first psd_length seconds of data
+        # to calculate the PSD and whiten the rest
+        idx = int(sample_rate * psd_length)
+        psd = spectral_density(data[..., :idx])
+        whitened = amplfi_whitener(data[..., idx:], psd).cpu().numpy()
+        whitened = np.squeeze(whitened)
+        whitened_start = t0 + psd_length + amplfi_fduration / 2
+        whitened_end = t0 + data.shape[-1] / sample_rate - amplfi_fduration / 2
+        whitened_times = np.arange(whitened_start, whitened_end, 1 / sample_rate)
+        whitened_data = np.concatenate([whitened_times[None], whitened])
+        np.save(datadir / "whitened_data.npy", whitened_data)
+
+        # Calculate offset between integration peak and
+        # the time of the event
+        time_offset = get_time_offset(
+            inference_sampling_rate=inference_sampling_rate,
+            fduration=fduration,
+            integration_window_length=integration_window_length,
+            aframe_right_pad=aframe_right_pad,
         )
-        amplfi = amplfi.to(device)
-        scaler = scaler.to(device)
 
-    # Calculate offset between integration peak and
-    # the time of the event
-    time_offset = get_time_offset(
-        inference_sampling_rate=inference_sampling_rate,
-        fduration=fduration,
-        integration_window_length=integration_window_length,
-        aframe_right_pad=aframe_right_pad,
-    )
+        logging.info("Running Aframe")
 
-    logging.info("Running Aframe")
+        times, ys, integrated = run_aframe(
+            data=data[:, :2],
+            t0=t0,
+            aframe=aframe,
+            whitener=whitener,
+            snapshotter=snapshotter,
+            inference_sampling_rate=inference_sampling_rate,
+            integration_window_length=integration_window_length,
+            batch_size=batch_size,
+            device=device,
+        )
+        tc = times[np.argmax(integrated)] + time_offset
 
-    times, ys, integrated = run_aframe(
-        data=data[:, :2],
-        t0=t0,
-        aframe=aframe,
-        whitener=whitener,
-        snapshotter=snapshotter,
-        inference_sampling_rate=inference_sampling_rate,
-        integration_window_length=integration_window_length,
-        batch_size=batch_size,
-        device=device,
-    )
-    tc = times[np.argmax(integrated)] + time_offset
+        logging.info("Plotting Aframe response")
+        plot_aframe_response(
+            times=times,
+            ys=ys,
+            integrated=integrated,
+            whitened=whitened,
+            whitened_times=whitened_times,
+            t0=t0,
+            tc=tc,
+            event_time=event_time,
+            plotdir=plotdir,
+        )
 
-    logging.info("Plotting Aframe response")
-    plot_aframe_response(
-        times=times,
-        ys=ys,
-        integrated=integrated,
-        whitened=whitened,
-        whitened_times=whitened_times,
-        t0=t0,
-        tc=tc,
-        event_time=event_time,
-        plotdir=plotdir,
-    )
+        amplfi_psd_data, amplfi_window = slice_amplfi_data(
+            data=data,
+            sample_rate=sample_rate,
+            t0=t0,
+            tc=tc,
+            amplfi_kernel_length=amplfi_kernel_length,
+            event_position=event_position,
+            amplfi_psd_length=amplfi_psd_length,
+            amplfi_fduration=amplfi_fduration,
+        )
 
-    amplfi_psd_data, amplfi_window = slice_amplfi_data(
-        data=data,
-        sample_rate=sample_rate,
-        t0=t0,
-        tc=tc,
-        amplfi_kernel_length=amplfi_kernel_length,
-        event_position=event_position,
-        amplfi_psd_length=amplfi_psd_length,
-        amplfi_fduration=amplfi_fduration,
-    )
-
-    logging.info("Running AMPLFI model")
-    samples, _, _, _ = run_amplfi(
-        amplfi_window[: len(ifos)],
-        amplfi_psd_data[: len(ifos)],
-        samples_per_event,
-        spectral_density,
-        amplfi_whitener,
-        amplfi,
-        scaler,
-        device=device,
-    )
-    result = postprocess_samples(
-        samples.cpu(),
-        tc,
-        inference_params,
-        amplfi_parameter_sampler,
-    )
-    logging.info("Plotting AMPLFI result")
-    plot_amplfi_result(
-        result=result,
-        nside=nside,
-        ifos=ifos,
-        datadir=datadir,
-        plotdir=plotdir,
-    )
+        if len(ifos) == 2:
+            amplfi = amplfi_hl
+            scaler = scaler_hl
+        else:
+            amplfi = amplfi_hlv
+            scaler = scaler_hlv
+        logging.info("Running AMPLFI model")
+        samples, _, _, _ = run_amplfi(
+            amplfi_window[: len(ifos)],
+            amplfi_psd_data[: len(ifos)],
+            samples_per_event,
+            spectral_density,
+            amplfi_whitener,
+            amplfi,
+            scaler,
+            device=device,
+        )
+        result = postprocess_samples(
+            samples.cpu(),
+            tc,
+            inference_params,
+            amplfi_parameter_sampler,
+        )
+        result.save_posterior_samples(filename=datadir / "posterior_samples.dat")
+        logging.info("Plotting AMPLFI result")
+        plot_amplfi_result(
+            result=result,
+            nside=nside,
+            ifos=ifos,
+            datadir=datadir,
+            plotdir=plotdir,
+        )

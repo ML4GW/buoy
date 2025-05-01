@@ -39,8 +39,8 @@ def plot_aframe_response(
     tc -= event_time
 
     plt.figure(figsize=(12, 8))
-    plt.plot(whitened_times, whitened[0, 0], label="H1", alpha=0.3)
-    plt.plot(whitened_times, whitened[0, 1], label="L1", alpha=0.3)
+    plt.plot(whitened_times, whitened[0], label="H1", alpha=0.3)
+    plt.plot(whitened_times, whitened[1], label="L1", alpha=0.3)
     plt.xlabel("Time from event (s)")
     plt.axvline(tc, color="tab:red", linestyle="--", label="Predicted time")
     plt.axvline(0, color="k", linestyle="--", label="Event time")

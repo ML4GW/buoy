@@ -8,7 +8,6 @@ authors = [
 requires-python = ">=3.10,<3.13"
 license = "MIT"
 dependencies = [
-    "aframe",
     "amplfi>=0.4.0",
     "ml4gw>=0.7.4",
     "omegaconf>=2.3.0,<3",
@@ -18,13 +17,11 @@ dependencies = [
     "ligo-skymap>=2.2.2,<3",
 ]
 
-[project.scripts]
-online = "online.cli:cli"
-
 [dependency-groups]
 dev = [
     "pytest>=8.2.1,<9",
     "jupyter>=1.0.0,<2",
+    "pre-commit>=3.7.0,<4",
 ]
 
 [tool.uv]
@@ -33,9 +30,6 @@ dev = [
 name = "torch"
 url = "https://download.pytorch.org/whl/cu118"
 explicit = true
-
-[tool.uv.sources]
-aframe = { path = "aframe", editable = true }
 
 [build-system]
 requires = ["hatchling"]

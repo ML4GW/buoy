@@ -1,0 +1,58 @@
+event: "GW190828_063405"
+outdir: "outdir"
+model_dir: "/home/william.benoit/fixed_models/2025-04-30"
+amplfi_hl_architecture: 
+  class_path: amplfi.train.architectures.flows.NSF
+  init_args:
+    hidden_features: [512, 512, 512]
+    transforms: 20
+    randperm: true
+    embedding_net: 
+      class_path: amplfi.train.architectures.embeddings.MultiModalPsd
+      init_args:
+        num_ifos: 2
+        time_context_dim: 12
+        freq_context_dim: 32
+        time_layers: [5, 3, 3]
+        freq_layers: [5, 3, 3]
+        norm_layer:
+          class_path: ml4gw.nn.norm.GroupNorm1DGetter
+          init_args:
+            groups: 8
+amplfi_hlv_architecture: 
+  class_path: amplfi.train.architectures.flows.NSF
+  init_args:
+    hidden_features: [512, 512, 512, 512, 512]
+    transforms: 20
+    randperm: true
+    embedding_net: 
+      class_path: amplfi.train.architectures.embeddings.MultiModalPsd
+      init_args:
+        num_ifos: 3
+        time_context_dim: 20
+        freq_context_dim: 48
+        time_layers: [5, 3, 3]
+        freq_layers: [5, 3, 3]
+        norm_layer:
+          class_path: ml4gw.nn.norm.GroupNorm1DGetter
+          init_args:
+            groups: 8
+amplfi_parameter_sampler: 
+    class_path: online.utils.pe.parameter_sampler
+sample_rate: 2048
+kernel_length: 1.5
+inference_sampling_rate: 128
+inference_params: ["chirp_mass", "mass_ratio", "distance", "phic",  "inclination", "dec", "psi", "phi"]
+batch_size: 32
+psd_length: 64
+amplfi_psd_length: 10
+aframe_right_pad: 0.0
+fduration: 1
+amplfi_fduration: 2
+integration_window_length: 1.5
+amplfi_kernel_length: 3
+event_position: 2.5
+fftlength: 2.5
+highpass: 32
+amplfi_highpass: 25
+device: "cuda"

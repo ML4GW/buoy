@@ -25,6 +25,12 @@ TODO:
 or Aframe does not react strongly to an event
 - Add options to save out more of the data
 - Remove hardcoded data times
+
+- Figure out where to store models
+- Make type checking consistent
+- Figure out how the config will work
+- Add README and licence
+- Set up PyPI integration
 """
 
 

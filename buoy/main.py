@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import List, Optional, Union, TYPE_CHECKING
+from typing import List, Optional, TYPE_CHECKING
 import warnings
 
 import numpy as np
@@ -35,7 +35,7 @@ def main(
     amplfi_hl_architecture: "FlowArchitecture",
     amplfi_hlv_architecture: "FlowArchitecture",
     amplfi_parameter_sampler: "ParameterSampler",
-    events: Union[str, List[str]],
+    events: List[str],
     outdir: Path,
     inference_params: List[str],
     sample_rate: float,
@@ -64,8 +64,8 @@ def main(
     if device == "cpu":
         warnings.warn(
             "Device is set to 'cpu'. This will take about "
-            "15 minutes to run. If a GPU is available, it "
-            "is recommended to set device to 'cuda'.",
+            "15 minutes to run with default settings. "
+            "If a GPU is available, set '--device cuda'. ",
             stacklevel=2,
         )
 

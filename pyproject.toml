@@ -20,6 +20,9 @@ dependencies = [
     "ligo-skymap>=2.2.2,<3",
 ]
 
+[project.scripts]
+buoy = "buoy.cli:cli"
+
 [dependency-groups]
 dev = [
     "pytest>=8.2.1,<9",

@@ -2,7 +2,7 @@ import logging
 import sys
 
 import jsonargparse
-from main import main
+from buoy.main import main
 
 
 def cli():

@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 
-from preprocessing import BatchWhitener, BackgroundSnapshotter
+from buoy.utils.preprocessing import BatchWhitener, BackgroundSnapshotter
 
 
 def get_time_offset(

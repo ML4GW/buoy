@@ -38,7 +38,7 @@ amplfi_hlv_architecture:
           init_args:
             groups: 8
 amplfi_parameter_sampler: 
-    class_path: online.utils.pe.parameter_sampler
+    class_path: buoy.utils.pe.parameter_sampler
 sample_rate: 2048
 kernel_length: 1.5
 inference_sampling_rate: 128

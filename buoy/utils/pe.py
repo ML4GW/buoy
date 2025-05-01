@@ -10,13 +10,14 @@ from amplfi.train.data.utils.utils import ParameterSampler
 from amplfi.train.priors import precessing_cbc_prior
 from amplfi.utils.result import AmplfiResult
 from ml4gw.distributions import Cosine
+from ml4gw.transforms import ChannelWiseScaler
 from torch.distributions import Uniform
 
 torch.set_num_threads(1)
 
 if TYPE_CHECKING:
     from amplfi.train.architectures.flows.base import FlowArchitecture
-    from ml4gw.transforms import ChannelWiseScaler, SpectralDensity, Whiten
+    from ml4gw.transforms import SpectralDensity, Whiten
 
 
 def load_model(model: torch.nn.Module, weights: Path):
@@ -29,7 +30,7 @@ def load_model(model: torch.nn.Module, weights: Path):
     return model, checkpoint
 
 
-def load_amplfi(model: FlowArchitecture, weights: Path, num_params: int):
+def load_amplfi(model: "FlowArchitecture", weights: Path, num_params: int):
     model, checkpoint = load_model(model, weights)
     scaler_weights = {
         k[len("scaler.") :]: v

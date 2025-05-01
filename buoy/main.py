@@ -10,11 +10,11 @@ from ml4gw.transforms import SpectralDensity, Whiten
 from amplfi.train.architectures.flows import FlowArchitecture
 from amplfi.train.data.utils.utils import ParameterSampler
 
-from utils.data import get_data, slice_amplfi_data
-from utils.detection import get_time_offset, run_aframe
-from utils.pe import load_amplfi, postprocess_samples, run_amplfi
-from utils.plotting import plot_aframe_response, plot_amplfi_result
-from utils.preprocessing import BackgroundSnapshotter, BatchWhitener
+from buoy.utils.data import get_data, slice_amplfi_data
+from buoy.utils.detection import get_time_offset, run_aframe
+from buoy.utils.pe import load_amplfi, postprocess_samples, run_amplfi
+from buoy.utils.plotting import plot_aframe_response, plot_amplfi_result
+from buoy.utils.preprocessing import BackgroundSnapshotter, BatchWhitener
 
 
 """

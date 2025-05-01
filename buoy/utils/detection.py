@@ -1,7 +1,10 @@
+from typing import TYPE_CHECKING
+
 import numpy as np
 import torch
 
-from buoy.utils.preprocessing import BatchWhitener, BackgroundSnapshotter
+if TYPE_CHECKING:
+    from buoy.utils.preprocessing import BatchWhitener, BackgroundSnapshotter
 
 
 def get_time_offset(
@@ -28,8 +31,8 @@ def run_aframe(
     data: torch.Tensor,
     t0: float,
     aframe: torch.nn.Module,
-    whitener: BatchWhitener,
-    snapshotter: BackgroundSnapshotter,
+    whitener: "BatchWhitener",
+    snapshotter: "BackgroundSnapshotter",
     inference_sampling_rate: float,
     integration_window_length: float,
     batch_size: int,

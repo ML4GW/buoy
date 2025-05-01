@@ -6,6 +6,8 @@ from ml4gw.utils.slicing import unfold_windows
 
 Tensor = torch.Tensor
 
+# TODO: these should live in `ml4gw`
+
 
 class BackgroundSnapshotter(torch.nn.Module):
     """Update a kernel with a new piece of streaming data"""

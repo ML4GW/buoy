@@ -1,14 +1,11 @@
 import logging
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, TYPE_CHECKING
 import warnings
 
 import numpy as np
 import torch
 from ml4gw.transforms import SpectralDensity, Whiten
-
-from amplfi.train.architectures.flows import FlowArchitecture
-from amplfi.train.data.utils.utils import ParameterSampler
 
 from buoy.utils.data import get_data, slice_amplfi_data
 from buoy.utils.detection import get_time_offset, run_aframe
@@ -16,6 +13,9 @@ from buoy.utils.pe import load_amplfi, postprocess_samples, run_amplfi
 from buoy.utils.plotting import plot_aframe_response, plot_amplfi_result
 from buoy.utils.preprocessing import BackgroundSnapshotter, BatchWhitener
 
+if TYPE_CHECKING:
+    from amplfi.train.architectures.flows import FlowArchitecture
+    from amplfi.train.data.utils.utils import ParameterSampler
 
 """
 TODO:
@@ -29,16 +29,17 @@ or Aframe does not react strongly to an event
 - Figure out where to store models
 - Make type checking consistent
 - Figure out how the config will work
-- Add README and licence
+- Add README and license
 - Set up PyPI integration
+- 
 """
 
 
 def main(
     model_dir: Path,
-    amplfi_hl_architecture: FlowArchitecture,
-    amplfi_hlv_architecture: FlowArchitecture,
-    amplfi_parameter_sampler: ParameterSampler,
+    amplfi_hl_architecture: "FlowArchitecture",
+    amplfi_hlv_architecture: "FlowArchitecture",
+    amplfi_parameter_sampler: "ParameterSampler",
     event: str,
     outdir: Path,
     inference_params: List[str],

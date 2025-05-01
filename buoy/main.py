@@ -56,8 +56,11 @@ def main(
     lowpass: Optional[float] = None,
     samples_per_event: int = 20000,
     nside: int = 32,
-    device: str = "cpu",
+    device: Optional[str] = None,
 ):
+    if device is None:
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+
     if device == "cpu":
         warnings.warn(
             "Device is set to 'cpu'. This will take about "

@@ -1,19 +1,23 @@
 import logging
 import sys
+from importlib import resources
 
 import jsonargparse
+from buoy import config
 from buoy.main import main
 
 
-def cli():
+def cli(args=None):
     log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     logging.basicConfig(
         format=log_format,
         level=logging.INFO,
         stream=sys.stdout,
     )
+    logging.getLogger("bilby").setLevel(logging.WARNING)
 
-    parser = jsonargparse.ArgumentParser()
+    default_config = resources.files(config).joinpath("config.yaml")
+    parser = jsonargparse.ArgumentParser(default_config_files=[default_config])
     parser.add_function_arguments(main)
     parser.add_argument("--config", action="config")
 
@@ -30,7 +34,7 @@ def cli():
         compute_fn=lambda x: len(x),
         apply_on="parse",
     )
-    args = parser.parse_args()
+    args = parser.parse_args(args)
     args.pop("config")
     args = parser.instantiate_classes(args)
 

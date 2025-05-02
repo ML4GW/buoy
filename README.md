@@ -10,7 +10,7 @@ It is recommended that you install `buoy` in a virtual environment such as `cond
 
 # Usage
 
-Note: for now, this script can be run only on the Hanford computing cluster of the LDG.
+Note: for now, this tool can be run only on the CIT, LHO, and LLO clusters of the LDG.
 
 The function of this library is to run trained [Aframe](https://github.com/ML4GW/aframe) and [AMPLFI](https://github.com/ML4GW/amplfi) models over a gravitaional wave event reported by the LIGO-Virgo-KAGRA collaboration during their third observing run, O3.
 

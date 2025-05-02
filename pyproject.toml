@@ -1,6 +1,6 @@
 [project]
-name = "buoy"
-version = "0.0.1"
+name = "ml4gw-buoy"
+version = "0.0.2"
 description = "Deploy Aframe and AMPLFI models over open data"
 authors = [
     { name = "Will Benoit", email = "benoi090@umn.edu" },
@@ -41,8 +41,14 @@ explicit = true
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-[tool.hatchling.metadata]
+[tool.hatch.build.targets.sdist]
+include = ["hermes"]
+
+[tool.hatch.build.targets.wheel]
+include = ["hermes"]
+
+[tool.hatch.metadata]
 allow-direct-references = true
 
-[tool.hatchling.build]
+[tool.hatch.build]
 include = ["buoy/configs/*.yaml"]

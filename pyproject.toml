@@ -1,6 +1,6 @@
 [project]
 name = "ml4gw-buoy"
-version = "0.1.0"
+version = "0.1.1"
 description = "Deploy Aframe and AMPLFI models over open data"
 authors = [
     { name = "Will Benoit", email = "benoi090@umn.edu" },
@@ -35,11 +35,6 @@ dev = [
 ]
 
 [tool.uv]
-
-[[tool.uv.index]]
-name = "torch"
-url = "https://download.pytorch.org/whl/cu118"
-explicit = true
 
 [build-system]
 requires = ["hatchling"]

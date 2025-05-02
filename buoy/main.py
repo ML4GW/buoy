@@ -157,7 +157,9 @@ def main(
         whitened = np.squeeze(whitened)
         whitened_start = t0 + psd_length + amplfi_fduration / 2
         whitened_end = t0 + data.shape[-1] / sample_rate - amplfi_fduration / 2
-        whitened_times = np.arange(whitened_start, whitened_end, 1 / sample_rate)
+        whitened_times = np.arange(
+            whitened_start, whitened_end, 1 / sample_rate
+        )
         whitened_data = np.concatenate([whitened_times[None], whitened])
         np.save(datadir / "whitened_data.npy", whitened_data)
 
@@ -232,7 +234,9 @@ def main(
             inference_params,
             amplfi_parameter_sampler,
         )
-        result.save_posterior_samples(filename=datadir / "posterior_samples.dat")
+        result.save_posterior_samples(
+            filename=datadir / "posterior_samples.dat"
+        )
         logging.info("Plotting AMPLFI result")
         plot_amplfi_result(
             result=result,

@@ -6,15 +6,19 @@ authors = [
     { name = "Will Benoit", email = "benoi090@umn.edu" },
 ]
 requires-python = ">=3.10,<3.13"
-license = "MIT"
+readme = "README.md"
+classifiers = [
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
 dependencies = [
     "amplfi>=0.4.0",
     "ml4gw>=0.7.4",
     "jsonargparse~=4.39",
-    "omegaconf>=2.3.0,<3",
     "h5py~=3.12",
     "numpy<2.0.0",
-    "scipy<1.15",
     "matplotlib==3.9.4",
     "gwpy==3.0.12",
     "ligo-skymap>=2.2.2,<3",
@@ -52,3 +56,17 @@ allow-direct-references = true
 
 [tool.hatch.build]
 include = ["buoy/configs/*.yaml"]
+
+[tool.ruff]
+line-length = 79
+
+[tool.ruff.lint]
+extend-safe-fixes = ["C408"]
+mccabe = {"max-complexity" = 18}
+select = ["B", "C", "E", "F", "W", "B9"]
+# ignore W605 and E203 for consistency with black
+ignore = ["W605", "E203"]
+
+# ignore asterisk imports and unused
+# import errors in __init__ files
+per-file-ignores =  {"**/__init__.py" = ["F401", "F403"]}

@@ -3,7 +3,7 @@
 This library is `pip` installable with
 
 ```bash
-pip install buoy
+pip install ml4gw-buoy
 ```
 
 # Usage

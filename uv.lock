@@ -2367,8 +2367,6 @@ dependencies = [
     { name = "matplotlib" },
     { name = "ml4gw" },
     { name = "numpy" },
-    { name = "omegaconf" },
-    { name = "scipy" },
 ]
 
 [package.dev-dependencies]
@@ -2388,8 +2386,6 @@ requires-dist = [
     { name = "matplotlib", specifier = "==3.9.4" },
     { name = "ml4gw", specifier = ">=0.7.4" },
     { name = "numpy", specifier = "<2.0.0" },
-    { name = "omegaconf", specifier = ">=2.3.0,<3" },
-    { name = "scipy", specifier = "<1.15" },
 ]
 
 [package.metadata.requires-dev]

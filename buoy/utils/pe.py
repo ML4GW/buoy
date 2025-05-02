@@ -23,7 +23,9 @@ if TYPE_CHECKING:
 def load_model(model: torch.nn.Module, weights: Path):
     checkpoint = torch.load(weights, map_location="cpu", weights_only=False)
     arch_weights = {
-        k[6:]: v for k, v in checkpoint["state_dict"].items() if k.startswith("model.")
+        k[6:]: v
+        for k, v in checkpoint["state_dict"].items()
+        if k.startswith("model.")
     }
     model.load_state_dict(arch_weights)
     model.eval()
@@ -83,9 +85,13 @@ def run_amplfi(
     whitened = amplfi_whitener(amplfi_strain, psd)
 
     # construct and bandpass asd
-    freqs = torch.fft.rfftfreq(whitened.shape[-1], d=1 / amplfi_whitener.sample_rate)
+    freqs = torch.fft.rfftfreq(
+        whitened.shape[-1], d=1 / amplfi_whitener.sample_rate
+    )
     num_freqs = len(freqs)
-    psd = torch.nn.functional.interpolate(psd, size=(num_freqs,), mode="linear")
+    psd = torch.nn.functional.interpolate(
+        psd, size=(num_freqs,), mode="linear"
+    )
 
     mask = freqs > amplfi_whitener.highpass
     if amplfi_whitener.lowpass is not None:

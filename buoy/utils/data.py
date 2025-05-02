@@ -23,7 +23,9 @@ def slice_amplfi_data(
     """
     window_start = tc - t0 - event_position - amplfi_fduration / 2
     window_start = int(sample_rate * window_start)
-    window_length = int((amplfi_kernel_length + amplfi_fduration) * sample_rate)
+    window_length = int(
+        (amplfi_kernel_length + amplfi_fduration) * sample_rate
+    )
     window_end = window_start + window_length
 
     psd_start = window_start - int(amplfi_psd_length * sample_rate)

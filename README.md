@@ -6,6 +6,8 @@ This library is `pip` installable with
 pip install ml4gw-buoy
 ```
 
+It is recommended that you install `buoy` in a virtual environment such as `conda`.
+
 # Usage
 
 Note: for now, this script can be run only on the Hanford computing cluster of the LDG.

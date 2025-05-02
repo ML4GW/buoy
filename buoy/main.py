@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import List, Optional, TYPE_CHECKING
+from typing import List, Optional, TYPE_CHECKING, Union
 import warnings
 
 import numpy as np
@@ -17,23 +17,13 @@ if TYPE_CHECKING:
     from amplfi.train.architectures.flows import FlowArchitecture
     from amplfi.train.data.utils.utils import ParameterSampler
 
-"""
-TODO:
-- Allow specifying event string or GPS time
-- Better handle times when an event is not present,
-or Aframe does not react strongly to an event
-- Remove hardcoded data times
-
-- Figure out where to store models
-"""
-
 
 def main(
     model_dir: Path,
     amplfi_hl_architecture: "FlowArchitecture",
     amplfi_hlv_architecture: "FlowArchitecture",
     amplfi_parameter_sampler: "ParameterSampler",
-    events: List[str],
+    events: Union[str, List[str]],
     outdir: Path,
     inference_params: List[str],
     sample_rate: float,

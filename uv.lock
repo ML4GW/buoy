@@ -531,51 +531,6 @@ wheels = [
 ]
 
 [[package]]
-name = "buoy"
-version = "0.0.1"
-source = { editable = "." }
-dependencies = [
-    { name = "amplfi" },
-    { name = "gwpy" },
-    { name = "h5py" },
-    { name = "jsonargparse" },
-    { name = "ligo-skymap" },
-    { name = "matplotlib" },
-    { name = "ml4gw" },
-    { name = "numpy" },
-    { name = "omegaconf" },
-    { name = "scipy" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "jupyter" },
-    { name = "pre-commit" },
-    { name = "pytest" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "amplfi", specifier = ">=0.4.0" },
-    { name = "gwpy", specifier = "==3.0.12" },
-    { name = "h5py", specifier = "~=3.12" },
-    { name = "jsonargparse", specifier = "~=4.39" },
-    { name = "ligo-skymap", specifier = ">=2.2.2,<3" },
-    { name = "matplotlib", specifier = "==3.9.4" },
-    { name = "ml4gw", specifier = ">=0.7.4" },
-    { name = "numpy", specifier = "<2.0.0" },
-    { name = "omegaconf", specifier = ">=2.3.0,<3" },
-    { name = "scipy", specifier = "<1.15" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "jupyter", specifier = ">=1.0.0,<2" },
-    { name = "pre-commit", specifier = ">=3.7.0,<4" },
-    { name = "pytest", specifier = ">=8.2.1,<9" },
-]
-
-[[package]]
 name = "cachetools"
 version = "5.5.2"
 source = { registry = "https://pypi.org/simple" }
@@ -2397,6 +2352,51 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/b1/3e/07951a975a2bd8443618e4ed7887be4be089568abaea90d2d5ce3faa0b10/ml4gw-0.7.4.tar.gz", hash = "sha256:3149155b671dc02bcbf0b2440409d93c745c23af5865b5847056a8e8151ca67b", size = 788319 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/4e/23/49fa7ee1026d28050faf70e2a60c7c2f2c378412a5f21eb4ee97e647a740/ml4gw-0.7.4-py3-none-any.whl", hash = "sha256:2ad28854f3f6a6f6a0265d84272b89d08c0410c5e75dc544f496b4dc4bf327e6", size = 123185 },
+]
+
+[[package]]
+name = "ml4gw-buoy"
+version = "0.0.1"
+source = { editable = "." }
+dependencies = [
+    { name = "amplfi" },
+    { name = "gwpy" },
+    { name = "h5py" },
+    { name = "jsonargparse" },
+    { name = "ligo-skymap" },
+    { name = "matplotlib" },
+    { name = "ml4gw" },
+    { name = "numpy" },
+    { name = "omegaconf" },
+    { name = "scipy" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "jupyter" },
+    { name = "pre-commit" },
+    { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "amplfi", specifier = ">=0.4.0" },
+    { name = "gwpy", specifier = "==3.0.12" },
+    { name = "h5py", specifier = "~=3.12" },
+    { name = "jsonargparse", specifier = "~=4.39" },
+    { name = "ligo-skymap", specifier = ">=2.2.2,<3" },
+    { name = "matplotlib", specifier = "==3.9.4" },
+    { name = "ml4gw", specifier = ">=0.7.4" },
+    { name = "numpy", specifier = "<2.0.0" },
+    { name = "omegaconf", specifier = ">=2.3.0,<3" },
+    { name = "scipy", specifier = "<1.15" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "jupyter", specifier = ">=1.0.0,<2" },
+    { name = "pre-commit", specifier = ">=3.7.0,<4" },
+    { name = "pytest", specifier = ">=8.2.1,<9" },
 ]
 
 [[package]]

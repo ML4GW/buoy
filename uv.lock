@@ -1446,6 +1446,24 @@ wheels = [
 ]
 
 [[package]]
+name = "huggingface-hub"
+version = "0.30.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "filelock" },
+    { name = "fsspec" },
+    { name = "packaging" },
+    { name = "pyyaml" },
+    { name = "requests" },
+    { name = "tqdm" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/df/22/8eb91736b1dcb83d879bd49050a09df29a57cc5cd9f38e48a4b1c45ee890/huggingface_hub-0.30.2.tar.gz", hash = "sha256:9a7897c5b6fd9dad3168a794a8998d6378210f5b9688d0dfc180b1a228dc2466", size = 400868 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/93/27/1fb384a841e9661faad1c31cbfa62864f59632e876df5d795234da51c395/huggingface_hub-0.30.2-py3-none-any.whl", hash = "sha256:68ff05969927058cfa41df4f2155d4bb48f5f54f719dd0390103eefa9b191e28", size = 481433 },
+]
+
+[[package]]
 name = "identify"
 version = "2.6.10"
 source = { registry = "https://pypi.org/simple" }
@@ -2362,6 +2380,7 @@ dependencies = [
     { name = "amplfi" },
     { name = "gwpy" },
     { name = "h5py" },
+    { name = "huggingface-hub" },
     { name = "jsonargparse" },
     { name = "ligo-skymap" },
     { name = "matplotlib" },
@@ -2381,6 +2400,7 @@ requires-dist = [
     { name = "amplfi", specifier = ">=0.4.0" },
     { name = "gwpy", specifier = "==3.0.12" },
     { name = "h5py", specifier = "~=3.12" },
+    { name = "huggingface-hub", specifier = "~=0.30" },
     { name = "jsonargparse", specifier = "~=4.39" },
     { name = "ligo-skymap", specifier = ">=2.2.2,<3" },
     { name = "matplotlib", specifier = "==3.9.4" },

@@ -22,6 +22,7 @@ dependencies = [
     "matplotlib==3.9.4",
     "gwpy==3.0.12",
     "ligo-skymap>=2.2.2,<3",
+    "huggingface_hub~=0.30",
 ]
 
 [project.scripts]

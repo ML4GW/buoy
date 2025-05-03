@@ -1,7 +1,6 @@
 events: 
   - "GW190521"
 outdir: "outdir"
-model_dir: "/home/william.benoit/fixed_models/2025-04-30"
 amplfi_hl_architecture: 
   class_path: amplfi.train.architectures.flows.NSF
   init_args:

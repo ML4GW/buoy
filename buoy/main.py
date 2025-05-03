@@ -5,6 +5,7 @@ import warnings
 
 import numpy as np
 import torch
+from huggingface_hub import hf_hub_download
 from ml4gw.transforms import SpectralDensity, Whiten
 
 from buoy.utils.data import get_data, slice_amplfi_data
@@ -19,7 +20,6 @@ if TYPE_CHECKING:
 
 
 def main(
-    model_dir: Path,
     amplfi_hl_architecture: "FlowArchitecture",
     amplfi_hlv_architecture: "FlowArchitecture",
     amplfi_parameter_sampler: "ParameterSampler",
@@ -64,10 +64,6 @@ def main(
             "a GPU."
         )
 
-    aframe_weights = model_dir / "aframe.pt"
-    amplfi_hl_weights = model_dir / "amplfi-hl.ckpt"
-    amplfi_hlv_weights = model_dir / "amplfi-hlv.ckpt"
-
     logging.info("Setting up preprocessing modules")
     # Create objects for whitening and
     # for generating snapshots of data
@@ -102,11 +98,22 @@ def main(
 
     logging.info("Loading Aframe")
 
+    # TODO: Allow specification of a cache directory
+    # TODO: When we have multiple model versions, provide
+    # a way to specify which one to use
+    aframe_weights = hf_hub_download(
+        repo_id="ML4GW/aframe",
+        filename="aframe.pt",
+    )
     # Load the trained models
     aframe = torch.jit.load(aframe_weights)
     aframe = aframe.to(device)
 
     logging.info("Loading AMPLFI HL model")
+    amplfi_hl_weights = hf_hub_download(
+        repo_id="ML4GW/amplfi",
+        filename="amplfi-hl.ckpt",
+    )
     amplfi_hl, scaler_hl = load_amplfi(
         amplfi_hl_architecture, amplfi_hl_weights, len(inference_params)
     )
@@ -114,6 +121,10 @@ def main(
     scaler_hl = scaler_hl.to(device)
 
     logging.info("Loading AMPLFI HLV model")
+    amplfi_hlv_weights = hf_hub_download(
+        repo_id="ML4GW/amplfi",
+        filename="amplfi-hlv.ckpt",
+    )
     amplfi_hlv, scaler_hlv = load_amplfi(
         amplfi_hlv_architecture, amplfi_hlv_weights, len(inference_params)
     )

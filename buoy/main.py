@@ -117,8 +117,6 @@ def main(
     aframe = torch.jit.load(aframe_weights)
     aframe = aframe.to(device)
 
-    logging.info("Loading AMPLFI HL model")
-
     if amplfi_hl_weights is None:
         logging.info(
             "Downloading AMPLFI HL model weights from HuggingFace "
@@ -138,7 +136,6 @@ def main(
     amplfi_hl = amplfi_hl.to(device)
     scaler_hl = scaler_hl.to(device)
 
-    logging.info("Loading AMPLFI HLV model")
     if amplfi_hlv_weights is None:
         logging.info(
             "Downloading AMPLFI HLV model weights from HuggingFace "

@@ -44,6 +44,9 @@ def main(
     lowpass: Optional[float] = None,
     samples_per_event: int = 20000,
     nside: int = 32,
+    aframe_weights: Optional[Path] = None,
+    amplfi_hl_weights: Optional[Path] = None,
+    amplfi_hlv_weights: Optional[Path] = None,
     device: Optional[str] = None,
 ):
     if device is None:
@@ -101,19 +104,26 @@ def main(
     # TODO: Allow specification of a cache directory
     # TODO: When we have multiple model versions, provide
     # a way to specify which one to use
-    aframe_weights = hf_hub_download(
-        repo_id="ML4GW/aframe",
-        filename="aframe.pt",
-    )
+    if aframe_weights is None:
+        logging.info("Downloading Aframe model weights or loading from cache")
+        aframe_weights = hf_hub_download(
+            repo_id="ML4GW/aframe",
+            filename="aframe.pt",
+        )
     # Load the trained models
     aframe = torch.jit.load(aframe_weights)
     aframe = aframe.to(device)
 
     logging.info("Loading AMPLFI HL model")
-    amplfi_hl_weights = hf_hub_download(
-        repo_id="ML4GW/amplfi",
-        filename="amplfi-hl.ckpt",
-    )
+
+    if amplfi_hl_weights is None:
+        logging.info(
+            "Downloading AMPLFI HL model weights or loading from cache"
+        )
+        amplfi_hl_weights = hf_hub_download(
+            repo_id="ML4GW/amplfi",
+            filename="amplfi-hl.ckpt",
+        )
     amplfi_hl, scaler_hl = load_amplfi(
         amplfi_hl_architecture, amplfi_hl_weights, len(inference_params)
     )
@@ -121,10 +131,14 @@ def main(
     scaler_hl = scaler_hl.to(device)
 
     logging.info("Loading AMPLFI HLV model")
-    amplfi_hlv_weights = hf_hub_download(
-        repo_id="ML4GW/amplfi",
-        filename="amplfi-hlv.ckpt",
-    )
+    if amplfi_hlv_weights is None:
+        logging.info(
+            "Downloading AMPLFI HLV model weights or loading from cache"
+        )
+        amplfi_hlv_weights = hf_hub_download(
+            repo_id="ML4GW/amplfi",
+            filename="amplfi-hlv.ckpt",
+        )
     amplfi_hlv, scaler_hlv = load_amplfi(
         amplfi_hlv_architecture, amplfi_hlv_weights, len(inference_params)
     )

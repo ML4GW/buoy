@@ -8,11 +8,10 @@ import torch
 from huggingface_hub import hf_hub_download
 from ml4gw.transforms import SpectralDensity, Whiten
 
+from buoy.models.aframe import Aframe
 from buoy.utils.data import get_data, slice_amplfi_data
-from buoy.utils.detection import get_time_offset, run_aframe
 from buoy.utils.pe import load_amplfi, postprocess_samples, run_amplfi
 from buoy.utils.plotting import plot_aframe_response, plot_amplfi_result
-from buoy.utils.preprocessing import BackgroundSnapshotter, BatchWhitener
 
 if TYPE_CHECKING:
     from amplfi.train.architectures.flows import FlowArchitecture
@@ -68,24 +67,6 @@ def main(
         )
 
     logging.info("Setting up preprocessing modules")
-    # Create objects for whitening and
-    # for generating snapshots of data
-    whitener = BatchWhitener(
-        kernel_length,
-        sample_rate,
-        inference_sampling_rate,
-        batch_size,
-        fduration,
-        fftlength,
-        highpass=highpass,
-    ).to(device)
-    snapshotter = BackgroundSnapshotter(
-        psd_length,
-        kernel_length,
-        fduration,
-        sample_rate,
-        inference_sampling_rate,
-    ).to(device)
 
     spectral_density = SpectralDensity(
         sample_rate=sample_rate,
@@ -99,23 +80,7 @@ def main(
         lowpass=lowpass,
     ).to(device)
 
-    # TODO: Allow specification of a cache directory
-    # TODO: When we have multiple model versions, provide
-    # a way to specify which one to use
-    if aframe_weights is None:
-        logging.info(
-            "Downloading Aframe model weights from HuggingFace "
-            "or loading from cache"
-        )
-        aframe_weights = hf_hub_download(
-            repo_id="ML4GW/aframe",
-            filename="aframe.pt",
-        )
-    else:
-        logging.info(f"Loading Aframe model weights from {aframe_weights}")
-    # Load the trained models
-    aframe = torch.jit.load(aframe_weights)
-    aframe = aframe.to(device)
+    aframe = Aframe()
 
     if amplfi_hl_weights is None:
         logging.info(
@@ -188,29 +153,10 @@ def main(
         whitened_data = np.concatenate([whitened_times[None], whitened])
         np.save(datadir / "whitened_data.npy", whitened_data)
 
-        # Calculate offset between integration peak and
-        # the time of the event
-        time_offset = get_time_offset(
-            inference_sampling_rate=inference_sampling_rate,
-            fduration=fduration,
-            integration_window_length=integration_window_length,
-            aframe_right_pad=aframe_right_pad,
-        )
-
         logging.info("Running Aframe")
 
-        times, ys, integrated = run_aframe(
-            data=data[:, :2],
-            t0=t0,
-            aframe=aframe,
-            whitener=whitener,
-            snapshotter=snapshotter,
-            inference_sampling_rate=inference_sampling_rate,
-            integration_window_length=integration_window_length,
-            batch_size=batch_size,
-            device=device,
-        )
-        tc = times[np.argmax(integrated)] + time_offset
+        times, ys, integrated = aframe(data[:, :2], t0)
+        tc = times[np.argmax(integrated)] + aframe.get_time_offset()
 
         logging.info("Plotting Aframe response")
         plot_aframe_response(

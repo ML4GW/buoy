@@ -5,12 +5,10 @@ import warnings
 
 import numpy as np
 import torch
-from huggingface_hub import hf_hub_download
-from ml4gw.transforms import SpectralDensity, Whiten
 
 from buoy.models.aframe import Aframe
-from buoy.utils.data import get_data, slice_amplfi_data
-from buoy.utils.pe import load_amplfi, postprocess_samples, run_amplfi
+from buoy.models.amplfi import Amplfi
+from buoy.utils.data import get_data
 from buoy.utils.plotting import plot_aframe_response, plot_amplfi_result
 
 if TYPE_CHECKING:
@@ -66,59 +64,21 @@ def main(
             "a GPU."
         )
 
-    logging.info("Setting up preprocessing modules")
+    logging.info("Settinp up models")
 
-    spectral_density = SpectralDensity(
-        sample_rate=sample_rate,
-        fftlength=fftlength,
-        average="median",
-    ).to(device)
-    amplfi_whitener = Whiten(
-        fduration=amplfi_fduration,
-        sample_rate=sample_rate,
-        highpass=amplfi_highpass,
-        lowpass=lowpass,
-    ).to(device)
+    aframe = Aframe(device=device)
 
-    aframe = Aframe()
-
-    if amplfi_hl_weights is None:
-        logging.info(
-            "Downloading AMPLFI HL model weights from HuggingFace "
-            "or loading from cache"
-        )
-        amplfi_hl_weights = hf_hub_download(
-            repo_id="ML4GW/amplfi",
-            filename="amplfi-hl.ckpt",
-        )
-    else:
-        logging.info(
-            f"Loading AMPLFI HL model weights from {amplfi_hl_weights}"
-        )
-    amplfi_hl, scaler_hl = load_amplfi(
-        amplfi_hl_architecture, amplfi_hl_weights, len(inference_params)
+    amplfi_hl = Amplfi(
+        model_weights="amplfi-hl.ckpt",
+        config="amplfi-hl-config.yaml",
+        device=device,
     )
-    amplfi_hl = amplfi_hl.to(device)
-    scaler_hl = scaler_hl.to(device)
 
-    if amplfi_hlv_weights is None:
-        logging.info(
-            "Downloading AMPLFI HLV model weights from HuggingFace "
-            "or loading from cache"
-        )
-        amplfi_hlv_weights = hf_hub_download(
-            repo_id="ML4GW/amplfi",
-            filename="amplfi-hlv.ckpt",
-        )
-    else:
-        logging.info(
-            f"Loading AMPLFI HLV model weights from {amplfi_hlv_weights}"
-        )
-    amplfi_hlv, scaler_hlv = load_amplfi(
-        amplfi_hlv_architecture, amplfi_hlv_weights, len(inference_params)
+    amplfi_hlv = Amplfi(
+        model_weights="amplfi-hlv.ckpt",
+        config="amplfi-hlv-config.yaml",
+        device=device,
     )
-    amplfi_hlv = amplfi_hlv.to(device)
-    scaler_hlv = scaler_hlv.to(device)
 
     if isinstance(events, str):
         events = [events]
@@ -142,8 +102,8 @@ def main(
         # Use the first psd_length seconds of data
         # to calculate the PSD and whiten the rest
         idx = int(sample_rate * psd_length)
-        psd = spectral_density(data[..., :idx])
-        whitened = amplfi_whitener(data[..., idx:], psd).cpu().numpy()
+        psd = amplfi_hl.spectral_density(data[..., :idx])
+        whitened = amplfi_hl.whitener(data[..., idx:], psd).cpu().numpy()
         whitened = np.squeeze(whitened)
         whitened_start = t0 + psd_length + amplfi_fduration / 2
         whitened_end = t0 + data.shape[-1] / sample_rate - amplfi_fduration / 2
@@ -171,40 +131,15 @@ def main(
             plotdir=plotdir,
         )
 
-        amplfi_psd_data, amplfi_window = slice_amplfi_data(
+        logging.info("Running AMPLFI model")
+        amplfi = amplfi_hl if len(data) == 2 else amplfi_hlv
+        result = amplfi(
             data=data,
-            sample_rate=sample_rate,
             t0=t0,
             tc=tc,
-            amplfi_kernel_length=amplfi_kernel_length,
-            event_position=event_position,
-            amplfi_psd_length=amplfi_psd_length,
-            amplfi_fduration=amplfi_fduration,
+            samples_per_event=samples_per_event,
         )
 
-        if len(ifos) == 2:
-            amplfi = amplfi_hl
-            scaler = scaler_hl
-        else:
-            amplfi = amplfi_hlv
-            scaler = scaler_hlv
-        logging.info("Running AMPLFI model")
-        samples, _, _, _ = run_amplfi(
-            amplfi_window[: len(ifos)],
-            amplfi_psd_data[: len(ifos)],
-            samples_per_event,
-            spectral_density,
-            amplfi_whitener,
-            amplfi,
-            scaler,
-            device=device,
-        )
-        result = postprocess_samples(
-            samples.cpu(),
-            tc,
-            inference_params,
-            amplfi_parameter_sampler,
-        )
         result.save_posterior_samples(
             filename=datadir / "posterior_samples.dat"
         )

@@ -52,22 +52,20 @@ def slice_amplfi_data(
     sample_rate: float,
     t0: float,
     tc: float,
-    amplfi_kernel_length: float,
+    kernel_length: float,
     event_position: float,
-    amplfi_psd_length: float,
-    amplfi_fduration: float,
+    psd_length: float,
+    fduration: float,
 ):
     """
     Slice the data to get the PSD window and kernel for amplfi
     """
-    window_start = tc - t0 - event_position - amplfi_fduration / 2
+    window_start = tc - t0 - event_position - fduration / 2
     window_start = int(sample_rate * window_start)
-    window_length = int(
-        (amplfi_kernel_length + amplfi_fduration) * sample_rate
-    )
+    window_length = int((kernel_length + fduration) * sample_rate)
     window_end = window_start + window_length
 
-    psd_start = window_start - int(amplfi_psd_length * sample_rate)
+    psd_start = window_start - int(psd_length * sample_rate)
 
     psd_data = data[0, :, psd_start:window_start]
     window = data[0, :, window_start:window_end]

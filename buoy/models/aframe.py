@@ -58,8 +58,7 @@ class Aframe(AframeConfig):
 
         parser = ArgumentParser()
         parser.add_class_arguments(AframeConfig)
-        cfg = parser.parse_path(config)
-        args = parser.instantiate_classes(cfg)
+        args = parser.parse_path(config)
 
         super().__init__(**vars(args))
         self.setup()

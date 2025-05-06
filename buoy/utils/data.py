@@ -6,6 +6,45 @@ import h5py
 import numpy as np
 import torch
 from gwpy.timeseries import TimeSeries, TimeSeriesDict
+from huggingface_hub import hf_hub_download
+from huggingface_hub.errors import EntryNotFoundError
+
+
+def get_local_or_hf(
+    filename: str,
+    repo_id: str,
+    descriptor: str,
+):
+    """
+    Determine whether a given file exists locally or in a HuggingFace
+    repository. If the file exists locally, return the filename.
+    If it does not exist locally, attempt to download it from the
+    HuggingFace repository. If the file is not found in either
+    location, raise a ValueError.
+
+    Args:
+        filename: The name of the file to load.
+        repo_id: The HuggingFace repository ID.
+        descriptor: A description of the file for logging.
+
+    Returns:
+        The path to the file.
+    """
+    if Path(filename).exists():
+        logging.info(f"Loading {descriptor} from {filename}")
+        return filename
+    else:
+        try:
+            logging.info(
+                f"Downloading {descriptor} from HuggingFace "
+                "or loading from cache"
+            )
+            return hf_hub_download(repo_id=repo_id, filename=filename)
+        except EntryNotFoundError as e:
+            raise ValueError(
+                f"{descriptor} {filename} not found locally or in "
+                f"HuggingFace repository {repo_id}. Please check the name."
+            ) from e
 
 
 def slice_amplfi_data(

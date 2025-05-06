@@ -1,44 +1,20 @@
 import logging
 from pathlib import Path
-from typing import List, Optional, TYPE_CHECKING, Union
+from typing import List, Optional, Union
 import warnings
 
 import numpy as np
 import torch
 
-from buoy.models.aframe import Aframe
-from buoy.models.amplfi import Amplfi
-from buoy.utils.data import get_data
-from buoy.utils.plotting import plot_aframe_response, plot_amplfi_result
-
-if TYPE_CHECKING:
-    from amplfi.train.architectures.flows import FlowArchitecture
-    from amplfi.train.data.utils.utils import ParameterSampler
+from .models import Aframe, Amplfi
+from .utils.data import get_data
+from .utils.plotting import plot_aframe_response, plot_amplfi_result
 
 
 def main(
-    amplfi_hl_architecture: "FlowArchitecture",
-    amplfi_hlv_architecture: "FlowArchitecture",
-    amplfi_parameter_sampler: "ParameterSampler",
     events: Union[str, List[str]],
     outdir: Path,
-    inference_params: List[str],
     sample_rate: float,
-    kernel_length: float,
-    inference_sampling_rate: float,
-    psd_length: float,
-    amplfi_psd_length: float,
-    aframe_right_pad: float,
-    amplfi_kernel_length: float,
-    event_position: float,
-    fduration: float,
-    amplfi_fduration: float,
-    integration_window_length: float,
-    batch_size: int,
-    fftlength: Optional[float] = None,
-    highpass: Optional[float] = None,
-    amplfi_highpass: Optional[float] = None,
-    lowpass: Optional[float] = None,
     samples_per_event: int = 20000,
     nside: int = 32,
     aframe_weights: Optional[Path] = None,
@@ -57,14 +33,14 @@ def main(
             stacklevel=2,
         )
 
-    if device == "cuda" and not torch.cuda.is_available():
+    if device.startswith("cuda") and not torch.cuda.is_available():
         raise ValueError(
-            "Device is set to 'cuda', but no GPU is available. "
+            f"Device is set to {device}, but no GPU is available. "
             "Please set device to 'cpu' or move to a node with "
             "a GPU."
         )
 
-    logging.info("Settinp up models")
+    logging.info("Setting up models")
 
     aframe = Aframe(device=device)
 
@@ -83,9 +59,8 @@ def main(
     if isinstance(events, str):
         events = [events]
     for event in events:
-        eventdir = outdir / event
-        datadir = eventdir / "data"
-        plotdir = eventdir / "plots"
+        datadir = outdir / event / "data"
+        plotdir = outdir / event / "plots"
         datadir.mkdir(parents=True, exist_ok=True)
         plotdir.mkdir(parents=True, exist_ok=True)
 
@@ -98,25 +73,36 @@ def main(
         data = torch.Tensor(data).double()
         data = data.to(device)
 
-        # Compute whitened data for plotting later
-        # Use the first psd_length seconds of data
-        # to calculate the PSD and whiten the rest
-        idx = int(sample_rate * psd_length)
-        psd = amplfi_hl.spectral_density(data[..., :idx])
-        whitened = amplfi_hl.whitener(data[..., idx:], psd).cpu().numpy()
-        whitened = np.squeeze(whitened)
-        whitened_start = t0 + psd_length + amplfi_fduration / 2
-        whitened_end = t0 + data.shape[-1] / sample_rate - amplfi_fduration / 2
-        whitened_times = np.arange(
-            whitened_start, whitened_end, 1 / sample_rate
-        )
-        whitened_data = np.concatenate([whitened_times[None], whitened])
-        np.save(datadir / "whitened_data.npy", whitened_data)
-
         logging.info("Running Aframe")
 
         times, ys, integrated = aframe(data[:, :2], t0)
         tc = times[np.argmax(integrated)] + aframe.get_time_offset()
+
+        logging.info("Running AMPLFI model")
+        amplfi = amplfi_hl if len(data) == 2 else amplfi_hlv
+        result = amplfi(
+            data=data,
+            t0=t0,
+            tc=tc,
+            samples_per_event=samples_per_event,
+        )
+
+        # Compute whitened data for plotting later
+        # Use the first psd_length seconds of data
+        # to calculate the PSD and whiten the rest
+        idx = int(amplfi.sample_rate * amplfi.psd_length)
+        psd = amplfi.spectral_density(data[..., :idx])
+        whitened = amplfi.whitener(data[..., idx:], psd).cpu().numpy()
+        whitened = np.squeeze(whitened)
+        whitened_start = t0 + amplfi.psd_length + amplfi.fduration / 2
+        whitened_end = (
+            t0 + data.shape[-1] / amplfi.sample_rate - amplfi.fduration / 2
+        )
+        whitened_times = np.arange(
+            whitened_start, whitened_end, 1 / amplfi.sample_rate
+        )
+        whitened_data = np.concatenate([whitened_times[None], whitened])
+        np.save(datadir / "whitened_data.npy", whitened_data)
 
         logging.info("Plotting Aframe response")
         plot_aframe_response(
@@ -129,15 +115,6 @@ def main(
             tc=tc,
             event_time=event_time,
             plotdir=plotdir,
-        )
-
-        logging.info("Running AMPLFI model")
-        amplfi = amplfi_hl if len(data) == 2 else amplfi_hlv
-        result = amplfi(
-            data=data,
-            t0=t0,
-            tc=tc,
-            samples_per_event=samples_per_event,
         )
 
         result.save_posterior_samples(

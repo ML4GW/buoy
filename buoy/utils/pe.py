@@ -33,7 +33,7 @@ def filter_samples(samples, parameter_sampler, inference_params):
 
         net_mask &= ~mask
 
-    logging.info(
+    logging.debug(
         f"Removed {(~net_mask).sum()}/{len(net_mask)} total samples "
         f"outside of prior range"
     )
@@ -74,14 +74,14 @@ def run_amplfi(
     asds = torch.sqrt(psd)
 
     # sample from the model and descale back to physical units
-    logging.info("Starting sampling")
+    logging.debug("Starting sampling")
     samples = amplfi.sample(samples_per_event, context=(whitened, asds))
     samples = samples.squeeze(1)
-    logging.info("Descaling samples")
+    logging.debug("Descaling samples")
     samples = samples.transpose(1, 0)
     descaled_samples = std_scaler(samples, reverse=True)
     descaled_samples = descaled_samples.transpose(1, 0)
-    logging.info("Finished AMPLFI")
+    logging.debug("Finished AMPLFI")
 
     return descaled_samples
 

@@ -47,12 +47,6 @@ include = ["buoy"]
 [tool.hatch.build.targets.wheel]
 include = ["buoy"]
 
-[tool.hatch.metadata]
-allow-direct-references = true
-
-[tool.hatch.build]
-include = ["buoy/configs/*.yaml"]
-
 [tool.ruff]
 line-length = 79
 

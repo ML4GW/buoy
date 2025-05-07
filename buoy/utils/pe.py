@@ -1,5 +1,4 @@
 import logging
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 import lal
@@ -13,35 +12,9 @@ from ml4gw.distributions import Cosine
 from ml4gw.transforms import ChannelWiseScaler
 from torch.distributions import Uniform
 
-torch.set_num_threads(1)
-
 if TYPE_CHECKING:
     from amplfi.train.architectures.flows.base import FlowArchitecture
     from ml4gw.transforms import SpectralDensity, Whiten
-
-
-def load_model(model: torch.nn.Module, weights: Path):
-    checkpoint = torch.load(weights, map_location="cpu", weights_only=False)
-    arch_weights = {
-        k[6:]: v
-        for k, v in checkpoint["state_dict"].items()
-        if k.startswith("model.")
-    }
-    model.load_state_dict(arch_weights)
-    model.eval()
-    return model, checkpoint
-
-
-def load_amplfi(model: "FlowArchitecture", weights: Path, num_params: int):
-    model, checkpoint = load_model(model, weights)
-    scaler_weights = {
-        k[len("scaler.") :]: v
-        for k, v in checkpoint["state_dict"].items()
-        if k.startswith("scaler.")
-    }
-    scaler = ChannelWiseScaler(num_params)
-    scaler.load_state_dict(scaler_weights)
-    return model, scaler
 
 
 def filter_samples(samples, parameter_sampler, inference_params):
@@ -60,7 +33,7 @@ def filter_samples(samples, parameter_sampler, inference_params):
 
         net_mask &= ~mask
 
-    logging.info(
+    logging.debug(
         f"Removed {(~net_mask).sum()}/{len(net_mask)} total samples "
         f"outside of prior range"
     )
@@ -97,24 +70,20 @@ def run_amplfi(
     if amplfi_whitener.lowpass is not None:
         mask *= freqs < amplfi_whitener.lowpass
 
-    freqs = freqs[mask]
     psd = psd[:, :, mask]
     asds = torch.sqrt(psd)
 
-    # copy asds for plotting later
-    out_asds = asds.clone().detach()
-
     # sample from the model and descale back to physical units
-    logging.info("Starting sampling")
+    logging.debug("Starting sampling")
     samples = amplfi.sample(samples_per_event, context=(whitened, asds))
     samples = samples.squeeze(1)
-    logging.info("Descaling samples")
+    logging.debug("Descaling samples")
     samples = samples.transpose(1, 0)
     descaled_samples = std_scaler(samples, reverse=True)
     descaled_samples = descaled_samples.transpose(1, 0)
-    logging.info("Finished AMPLFI")
+    logging.debug("Finished AMPLFI")
 
-    return descaled_samples, whitened, out_asds, freqs
+    return descaled_samples
 
 
 def postprocess_samples(

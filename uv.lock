@@ -2374,7 +2374,7 @@ wheels = [
 
 [[package]]
 name = "ml4gw-buoy"
-version = "0.1.1"
+version = "0.2.0"
 source = { editable = "." }
 dependencies = [
     { name = "amplfi" },

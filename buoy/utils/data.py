@@ -6,6 +6,45 @@ import h5py
 import numpy as np
 import torch
 from gwpy.timeseries import TimeSeries, TimeSeriesDict
+from huggingface_hub import hf_hub_download
+from huggingface_hub.errors import EntryNotFoundError
+
+
+def get_local_or_hf(
+    filename: str,
+    repo_id: str,
+    descriptor: str,
+):
+    """
+    Determine whether a given file exists locally or in a HuggingFace
+    repository. If the file exists locally, return the filename.
+    If it does not exist locally, attempt to download it from the
+    HuggingFace repository. If the file is not found in either
+    location, raise a ValueError.
+
+    Args:
+        filename: The name of the file to load.
+        repo_id: The HuggingFace repository ID.
+        descriptor: A description of the file for logging.
+
+    Returns:
+        The path to the file.
+    """
+    if Path(filename).exists():
+        logging.info(f"Loading {descriptor} from {filename}")
+        return filename
+    else:
+        try:
+            logging.info(
+                f"Downloading {descriptor} from HuggingFace "
+                "or loading from cache"
+            )
+            return hf_hub_download(repo_id=repo_id, filename=filename)
+        except EntryNotFoundError as e:
+            raise ValueError(
+                f"{descriptor} {filename} not found locally or in "
+                f"HuggingFace repository {repo_id}. Please check the name."
+            ) from e
 
 
 def slice_amplfi_data(
@@ -13,22 +52,40 @@ def slice_amplfi_data(
     sample_rate: float,
     t0: float,
     tc: float,
-    amplfi_kernel_length: float,
+    kernel_length: float,
     event_position: float,
-    amplfi_psd_length: float,
-    amplfi_fduration: float,
+    psd_length: float,
+    fduration: float,
 ):
     """
     Slice the data to get the PSD window and kernel for amplfi
     """
-    window_start = tc - t0 - event_position - amplfi_fduration / 2
+    window_start = tc - t0 - event_position - fduration / 2
     window_start = int(sample_rate * window_start)
-    window_length = int(
-        (amplfi_kernel_length + amplfi_fduration) * sample_rate
-    )
+    window_length = int((kernel_length + fduration) * sample_rate)
     window_end = window_start + window_length
 
-    psd_start = window_start - int(amplfi_psd_length * sample_rate)
+    if window_start < 0:
+        raise ValueError(
+            "The start of the AMPLFI window before the start of the data. "
+            "This may be due to the event time being too close to "
+            "the start of the data."
+        )
+    if window_end > data.shape[-1]:
+        raise ValueError(
+            "The end of the AMPLFI window is after the end of the data. "
+            "This may be due to the event time being too close to "
+            "the end of the data."
+        )
+
+    psd_start = window_start - int(psd_length * sample_rate)
+
+    if psd_start < 0:
+        raise ValueError(
+            "The start of the PSD window before the start of the data. "
+            "This may be due to the event time being too close to "
+            "the start of the data."
+        )
 
     psd_data = data[0, :, psd_start:window_start]
     window = data[0, :, window_start:window_end]

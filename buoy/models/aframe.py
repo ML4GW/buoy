@@ -101,6 +101,22 @@ class Aframe(AframeConfig):
 
         return time_offset
 
+    @property
+    def minimum_data_size(self) -> int:
+        """
+        The minimum length of data, in samples, required
+        for the model to run with its current configuration
+        """
+        fsize = int(self.fduration * self.sample_rate)
+        psd_size = int(self.psd_length * self.sample_rate)
+        total_size = (
+            psd_size
+            + fsize
+            + self.whitener.kernel_size
+            + (self.batch_size - 1) * self.whitener.stride_size
+        )
+        return total_size
+
     def __call__(
         self,
         data: torch.Tensor,
@@ -109,6 +125,12 @@ class Aframe(AframeConfig):
         """
         Run the aframe model over the data
         """
+        if data.shape[-1] < self.minimum_data_size:
+            raise ValueError(
+                f"Data size {data.shape[-1]} is less than the minimum "
+                f"size of {self.minimum_data_size}"
+            )
+
         step_size = int(self.batch_size * self.whitener.stride_size)
         state = torch.zeros(
             (1, 2, self.snapshotter.state_size), device=self.device

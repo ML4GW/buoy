@@ -14,12 +14,14 @@ from .utils.plotting import plot_aframe_response, plot_amplfi_result
 def main(
     events: Union[str, List[str]],
     outdir: Path,
-    sample_rate: float,
     samples_per_event: int = 20000,
     nside: int = 32,
     aframe_weights: Optional[Path] = None,
     amplfi_hl_weights: Optional[Path] = None,
     amplfi_hlv_weights: Optional[Path] = None,
+    aframe_config: Optional[Path] = None,
+    amplfi_hl_config: Optional[Path] = None,
+    amplfi_hlv_config: Optional[Path] = None,
     device: Optional[str] = None,
 ):
     if device is None:
@@ -42,19 +44,25 @@ def main(
 
     logging.info("Setting up models")
 
-    aframe = Aframe(device=device)
+    aframe = Aframe(
+        model_weights=aframe_weights or "aframe.pt",
+        config=aframe_config or "aframe_config.yaml",
+        device=device,
+    )
 
     amplfi_hl = Amplfi(
-        model_weights="amplfi-hl.ckpt",
-        config="amplfi-hl-config.yaml",
+        model_weights=amplfi_hl_weights or "amplfi-hl.ckpt",
+        config=amplfi_hl_config or "amplfi-hl-config.yaml",
         device=device,
     )
 
     amplfi_hlv = Amplfi(
-        model_weights="amplfi-hlv.ckpt",
-        config="amplfi-hlv-config.yaml",
+        model_weights=amplfi_hlv_weights or "amplfi-hlv.ckpt",
+        config=amplfi_hlv_config or "amplfi-hlv-config.yaml",
         device=device,
     )
+
+    # TODO: should we check that the sample rate for each model is the same?
 
     if isinstance(events, str):
         events = [events]
@@ -67,7 +75,7 @@ def main(
         logging.info("Fetching or loading data")
         data, ifos, t0, event_time = get_data(
             event=event,
-            sample_rate=sample_rate,
+            sample_rate=aframe.sample_rate,
             datadir=datadir,
         )
         data = torch.Tensor(data).double()

@@ -115,6 +115,14 @@ class Amplfi(AmplfiConfig):
             lowpass=self.lowpass,
         ).to(self.device)
 
+    @property
+    def minimum_data_size(self) -> int:
+        """Minimum data size required for the model to run."""
+        return int(
+            (self.kernel_length + self.psd_length + self.fduration)
+            * self.sample_rate
+        )
+
     def __call__(
         self,
         data: torch.Tensor,
@@ -122,6 +130,12 @@ class Amplfi(AmplfiConfig):
         tc: float,
         samples_per_event: int,
     ):
+        if data.shape[-1] < self.minimum_data_size:
+            raise ValueError(
+                f"Data size {data.shape[-1]} is less than the minimum "
+                f"size of {self.minimum_data_size}"
+            )
+
         psd_data, window = slice_amplfi_data(
             data=data,
             sample_rate=self.sample_rate,

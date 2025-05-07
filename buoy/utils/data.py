@@ -65,7 +65,27 @@ def slice_amplfi_data(
     window_length = int((kernel_length + fduration) * sample_rate)
     window_end = window_start + window_length
 
+    if window_start < 0:
+        raise ValueError(
+            "The start of the AMPLFI window before the start of the data. "
+            "This may be due to the event time being too close to "
+            "the start of the data."
+        )
+    if window_end > data.shape[-1]:
+        raise ValueError(
+            "The end of the AMPLFI window is after the end of the data. "
+            "This may be due to the event time being too close to "
+            "the end of the data."
+        )
+
     psd_start = window_start - int(psd_length * sample_rate)
+
+    if psd_start < 0:
+        raise ValueError(
+            "The start of the PSD window before the start of the data. "
+            "This may be due to the event time being too close to "
+            "the start of the data."
+        )
 
     psd_data = data[0, :, psd_start:window_start]
     window = data[0, :, window_start:window_end]

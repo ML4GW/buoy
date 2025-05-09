@@ -11,7 +11,7 @@ from huggingface_hub.errors import EntryNotFoundError
 
 
 def get_local_or_hf(
-    filename: str,
+    filename: Path,
     repo_id: str,
     descriptor: str,
 ):
@@ -39,7 +39,7 @@ def get_local_or_hf(
                 f"Downloading {descriptor} from HuggingFace "
                 "or loading from cache"
             )
-            return hf_hub_download(repo_id=repo_id, filename=filename)
+            return hf_hub_download(repo_id=repo_id, filename=str(filename))
         except EntryNotFoundError as e:
             raise ValueError(
                 f"{descriptor} {filename} not found locally or in "

@@ -8,6 +8,7 @@ import torch
 
 from .models import Aframe, Amplfi
 from .utils.data import get_data
+from .utils.html import generate_html
 from .utils.plotting import plot_aframe_response, plot_amplfi_result
 
 
@@ -23,7 +24,44 @@ def main(
     amplfi_hl_config: Optional[Path] = None,
     amplfi_hlv_config: Optional[Path] = None,
     device: Optional[str] = None,
+    to_html: bool = False,
 ):
+    """
+    Main function to run Aframe and AMPLFI on the given events
+    and produce output plots.
+
+    Args:
+        events:
+            Gravitational wave event name(s) to process.
+        outdir:
+            Output directory to save results.
+        samples_per_event:
+            Number of samples for AMPLFI to generate for each event.
+        nside:
+            Healpix resolution for AMPLFI skymap
+        aframe_weights:
+            Path to Aframe model weights. Can be a local path
+            or in the ML4GW/aframe Hugging Face repository.
+        amplfi_hl_weights:
+            Path to AMPLFI HL model weights. Can be a local path
+            or in the ML4GW/amplfi Hugging Face repository.
+        amplfi_hlv_weights:
+            Path to AMPLFI HLV model weights. Can be a local path
+            or in the ML4GW/amplfi Hugging Face repository.
+        aframe_config:
+            Path to Aframe config file. Can be a local path
+            or in the ML4GW/aframe Hugging Face repository.
+        amplfi_hl_config:
+            Path to AMPLFI HL config file. Can be a local path
+            or in the ML4GW/amplfi Hugging Face repository.
+        amplfi_hlv_config:
+            Path to AMPLFI HLV config file. Can be a local path
+            or in the ML4GW/amplfi Hugging Face repository.
+        device:
+            Device to run the models on ("cpu" or "cuda").
+        to_html:
+            If True, generate an HTML summary page.
+    """
     if device is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -136,3 +174,11 @@ def main(
             datadir=datadir,
             plotdir=plotdir,
         )
+
+        if to_html:
+            logging.info("Generating HTML page")
+            generate_html(
+                plotdir=plotdir,
+                output_file=outdir / event / "summary.html",
+                label=event + " Event Summary",
+            )

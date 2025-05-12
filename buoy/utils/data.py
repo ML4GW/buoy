@@ -8,6 +8,7 @@ import torch
 from gwpy.timeseries import TimeSeries, TimeSeriesDict
 from huggingface_hub import hf_hub_download
 from huggingface_hub.errors import EntryNotFoundError
+from ligo.gracedb.rest import GraceDb
 
 
 def get_local_or_hf(
@@ -98,11 +99,30 @@ def get_data(
     sample_rate: float,
     datadir: Path,
 ):
-    event_time = gwosc.datasets.event_gps(event)
+    if event.startswith("GW"):
+        event_time = gwosc.datasets.event_gps(event)
+        ifos = sorted(gwosc.datasets.event_detectors(event))
+    else:
+        client = GraceDb()
+        if event.startswith("G"):
+            response = client.event(event).json()
+            event_time = response["gpstime"]
+            ifos = response["instruments"].split(",")
+        elif event.startswith("S"):
+            response = client.superevent(event).json()
+            event_time = response["preferred_event_data"]["gpstime"]
+            ifos = response["preferred_event_data"]["instruments"].split(",")
+        else:
+            raise ValueError(
+                f"Event {event} is not a valid event name. "
+                "Should be a valid GPS time, a known gravitational wave "
+                "event name (e.g. GW123456), or a GraceDB event or superevent "
+                "(e.g. G123456 or S123456)."
+            )
+
     offset = event_time % 1
     start = event_time - 96 - offset
     end = event_time + 32 - offset
-    ifos = sorted(gwosc.datasets.event_detectors(event))
 
     if ifos not in [["H1", "L1"], ["H1", "L1", "V1"]]:
         raise ValueError(

@@ -23,6 +23,7 @@ def main(
     aframe_config: Optional[Path] = None,
     amplfi_hl_config: Optional[Path] = None,
     amplfi_hlv_config: Optional[Path] = None,
+    use_true_tc_for_amplfi: bool = False,
     device: Optional[str] = None,
     to_html: bool = False,
 ):
@@ -57,6 +58,9 @@ def main(
         amplfi_hlv_config:
             Path to AMPLFI HLV config file. Can be a local path
             or in the ML4GW/amplfi Hugging Face repository.
+        use_true_tc_for_amplfi:
+            If True, use the true time of coalescence for AMPLFI.
+            Else, use the merger time inferred from Aframe.
         device:
             Device to run the models on ("cpu" or "cuda").
         to_html:
@@ -122,7 +126,10 @@ def main(
         logging.info("Running Aframe")
 
         times, ys, integrated = aframe(data[:, :2], t0)
-        tc = times[np.argmax(integrated)] + aframe.get_time_offset()
+        if use_true_tc_for_amplfi:
+            tc = event_time
+        else:
+            tc = times[np.argmax(integrated)] + aframe.get_time_offset()
 
         logging.info("Running AMPLFI model")
         amplfi = amplfi_hl if len(data) == 2 else amplfi_hlv

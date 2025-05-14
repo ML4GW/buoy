@@ -106,7 +106,7 @@ def main(
 
     # TODO: should we check that the sample rate for each model is the same?
 
-    if isinstance(events, str):
+    if not isinstance(events, list):
         events = [events]
     for event in events:
         datadir = outdir / event / "data"
@@ -132,7 +132,7 @@ def main(
             tc = times[np.argmax(integrated)] + aframe.get_time_offset()
 
         logging.info("Running AMPLFI model")
-        amplfi = amplfi_hl if len(data) == 2 else amplfi_hlv
+        amplfi = amplfi_hl if data.shape[1] == 2 else amplfi_hlv
         result = amplfi(
             data=data,
             t0=t0,

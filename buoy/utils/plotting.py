@@ -56,6 +56,7 @@ def plot_aframe_response(
     plt.xlim(t0 + 94, t0 + 102)
     plt.grid()
     plt.savefig(plotdir / "aframe_response.png", bbox_inches="tight")
+    plt.close()
 
 
 def plot_amplfi_result(

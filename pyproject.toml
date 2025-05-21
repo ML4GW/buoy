@@ -1,6 +1,6 @@
 [project]
 name = "ml4gw-buoy"
-version = "0.2.1"
+version = "0.2.2"
 description = "Deploy Aframe and AMPLFI models over open data"
 authors = [
     { name = "Will Benoit", email = "benoi090@umn.edu" },

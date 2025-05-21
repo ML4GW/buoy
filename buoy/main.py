@@ -26,6 +26,7 @@ def main(
     use_true_tc_for_amplfi: bool = False,
     device: Optional[str] = None,
     to_html: bool = False,
+    seed: Optional[int] = None,
 ):
     """
     Main function to run Aframe and AMPLFI on the given events
@@ -65,7 +66,12 @@ def main(
             Device to run the models on ("cpu" or "cuda").
         to_html:
             If True, generate an HTML summary page.
+        seed:
+            Random seed for reproducibility of AMPLFI results.
     """
+    if seed is not None:
+        torch.manual_seed(seed)
+
     if device is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
 

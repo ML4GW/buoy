@@ -135,7 +135,7 @@ def main(
         if use_true_tc_for_amplfi:
             tc = event_time
         else:
-            tc = times[np.argmax(integrated)] + aframe.get_time_offset()
+            tc = times[np.argmax(integrated)] + aframe.time_offset
 
         logging.info("Running AMPLFI model")
         amplfi = amplfi_hl if data.shape[1] == 2 else amplfi_hlv

@@ -61,9 +61,26 @@ class Aframe(AframeConfig):
         args = parser.parse_path(config)
 
         super().__init__(**vars(args))
-        self.setup()
+        self.configure_preprocessing()
 
-    def setup(self):
+    def update_config(self, **kwargs):
+        """
+        Update the Aframe configuration with new parameters.
+
+        Warning: some changes may not be sensible given how
+        the model was trained (e.g., kernel_length, sample_rate).
+        Changing these parameters may lead to unexpected results.
+        """
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+            else:
+                raise ValueError(f"Invalid configuration parameter: {key}")
+
+        # Reconfigure preprocessing after updating parameters
+        self.configure_preprocessing()
+
+    def configure_preprocessing(self):
         self.whitener = BatchWhitener(
             kernel_length=self.kernel_length,
             sample_rate=self.sample_rate,
@@ -82,7 +99,8 @@ class Aframe(AframeConfig):
             inference_sampling_rate=self.inference_sampling_rate,
         ).to(self.device)
 
-    def get_time_offset(self):
+    @property
+    def time_offset(self):
         """
         Estimate the time offset between the peak of the integrated
         outputs and the merger time of the signal

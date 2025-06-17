@@ -34,8 +34,8 @@ class AmplfiConfig:
 class Amplfi(AmplfiConfig):
     def __init__(
         self,
-        model_weights: str,
-        config: str,
+        model_weights: Optional[str] = "amplfi-hlv.ckpt",
+        config: Optional[str] = "amplfi-hlv-config.yaml",
         device: Optional[str] = None,
     ):
         if device is None:
@@ -75,7 +75,7 @@ class Amplfi(AmplfiConfig):
         self.model = model.to(self.device)
         self.scaler = scaler.to(self.device)
 
-        self.setup()
+        self.configure_preprocessing()
 
     def load_model(
         self,
@@ -102,7 +102,24 @@ class Amplfi(AmplfiConfig):
         scaler.load_state_dict(scaler_weights)
         return model, scaler
 
-    def setup(self):
+    def update_config(self, **kwargs):
+        """
+        Update the AMPLFI configuration with new parameters.
+
+        Warning: some changes may not be sensible given how
+        the model was trained (e.g., kernel_length, sample_rate).
+        Changing these parameters may lead to unexpected results.
+        """
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+            else:
+                raise ValueError(f"Invalid configuration parameter: {key}")
+
+        # Reconfigure preprocessing after updating parameters
+        self.configure_preprocessing()
+
+    def configure_preprocessing(self):
         self.spectral_density = SpectralDensity(
             sample_rate=self.sample_rate,
             fftlength=self.fftlength,

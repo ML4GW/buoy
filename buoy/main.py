@@ -16,7 +16,9 @@ def main(
     events: Union[str, List[str]],
     outdir: Path,
     samples_per_event: int = 20000,
-    nside: int = 32,
+    nside: int = 64,
+    min_samples_per_pix: int = 5,
+    use_distance: bool = True,
     aframe_weights: Optional[Path] = None,
     amplfi_hl_weights: Optional[Path] = None,
     amplfi_hlv_weights: Optional[Path] = None,
@@ -41,6 +43,12 @@ def main(
             Number of samples for AMPLFI to generate for each event.
         nside:
             Healpix resolution for AMPLFI skymap
+        min_samples_per_pix:
+            Minimum number of samples per healpix pixel
+            required to estimate parameters of the distance
+            ansatz
+        use_distance:
+            If true, use distance samples to create a 3D skymap
         aframe_weights:
             Path to Aframe model weights. Can be a local path
             or in the ML4GW/aframe Hugging Face repository.
@@ -183,6 +191,8 @@ def main(
         plot_amplfi_result(
             result=result,
             nside=nside,
+            min_samples_per_pix=min_samples_per_pix,
+            use_distance=use_distance,
             ifos=ifos,
             datadir=datadir,
             plotdir=plotdir,

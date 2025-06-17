@@ -62,6 +62,8 @@ def plot_aframe_response(
 def plot_amplfi_result(
     result: "AmplfiResult",
     nside: int,
+    min_samples_per_pix: int,
+    use_distance: bool,
     ifos: List[str],
     datadir: Path,
     plotdir: Path,
@@ -72,7 +74,9 @@ def plot_amplfi_result(
 
     suffix = "".join([ifo[0] for ifo in ifos])
 
-    skymap = result.to_skymap(nside, use_distance=False)
+    skymap = result.to_skymap(
+        nside, min_samples_per_pix, use_distance=use_distance
+    )
     fits_skymap = io.fits.table_to_hdu(skymap)
     fits_fname = datadir / f"amplfi_{suffix}.fits"
     fits_skymap.writeto(fits_fname, overwrite=True)

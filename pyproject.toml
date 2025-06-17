@@ -1,6 +1,6 @@
 [project]
 name = "ml4gw-buoy"
-version = "0.2.2"
+version = "0.2.3"
 description = "Deploy Aframe and AMPLFI models over open data"
 authors = [
     { name = "Will Benoit", email = "benoi090@umn.edu" },
@@ -16,7 +16,7 @@ classifiers = [
 dependencies = [
     "amplfi>=0.4.0",
     "ml4gw>=0.7.4",
-    "jsonargparse~=4.39",
+    "jsonargparse~=4.40",
     "h5py~=3.12",
     "numpy<2.0.0",
     "matplotlib==3.9.4",

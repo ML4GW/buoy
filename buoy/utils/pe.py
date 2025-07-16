@@ -2,15 +2,10 @@ import logging
 from typing import TYPE_CHECKING
 
 import lal
-import numpy as np
 import pandas as pd
 import torch
-from amplfi.train.data.utils.utils import ParameterSampler
-from amplfi.train.priors import precessing_cbc_prior
 from amplfi.utils.result import AmplfiResult
-from ml4gw.distributions import Cosine
 from ml4gw.transforms import ChannelWiseScaler
-from torch.distributions import Uniform
 
 if TYPE_CHECKING:
     from amplfi.train.architectures.flows.base import FlowArchitecture
@@ -19,7 +14,7 @@ if TYPE_CHECKING:
 
 def filter_samples(samples, parameter_sampler, inference_params):
     net_mask = torch.ones(samples.shape[0], dtype=bool)
-    priors = parameter_sampler.parameters
+    priors = parameter_sampler.priors
     for i, param in enumerate(inference_params):
         prior = priors[param]
         curr_samples = samples[:, i]
@@ -127,18 +122,3 @@ def postprocess_samples(
         search_parameter_keys=inference_params,
     )
     return result
-
-
-# TODO: need more robust way to
-# specify the parameter sampler,
-# either from the config,
-# or by loading in from checkpoint
-def parameter_sampler() -> ParameterSampler:
-    base = precessing_cbc_prior()
-    base.parameters["chirp_mass"] = Uniform(0, 150, validate_args=False)
-    base.parameters["mass_ratio"] = Uniform(0, 0.999, validate_args=False)
-    base.parameters["distance"] = Uniform(0, 5000, validate_args=False)
-    base.parameters["dec"] = Cosine(validate_args=False)
-    base.parameters["phi"] = Uniform(0, 2 * np.pi, validate_args=False)
-    base.parameters["psi"] = Uniform(0, np.pi, validate_args=False)
-    return base

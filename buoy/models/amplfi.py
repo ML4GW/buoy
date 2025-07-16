@@ -11,7 +11,7 @@ from buoy.utils.pe import postprocess_samples, run_amplfi
 
 if TYPE_CHECKING:
     from amplfi.train.architectures.flows import FlowArchitecture
-    from amplfi.train.prior import AmplfiPrior 
+    from amplfi.train.prior import AmplfiPrior
 
 REPO_ID = "ML4GW/amplfi"
 

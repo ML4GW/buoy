@@ -75,7 +75,10 @@ def plot_amplfi_result(
     suffix = "".join([ifo[0] for ifo in ifos])
 
     skymap = result.to_skymap(
-        nside, min_samples_per_pix, use_distance=use_distance, metadata = {"INSTRUME": ",".join(ifos)}
+        nside,
+        min_samples_per_pix,
+        use_distance=use_distance,
+        metadata={"INSTRUME": ",".join(ifos)},
     )
     fits_skymap = io.fits.table_to_hdu(skymap)
     fits_fname = datadir / f"amplfi_{suffix}.fits"

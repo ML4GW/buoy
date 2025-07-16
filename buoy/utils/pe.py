@@ -2,14 +2,10 @@ import logging
 from typing import TYPE_CHECKING
 
 import lal
-import numpy as np
 import pandas as pd
 import torch
-from amplfi.train.prior import AmplfiPrior 
 from amplfi.utils.result import AmplfiResult
-from ml4gw.distributions import Cosine
 from ml4gw.transforms import ChannelWiseScaler
-from torch.distributions import Uniform
 
 if TYPE_CHECKING:
     from amplfi.train.architectures.flows.base import FlowArchitecture

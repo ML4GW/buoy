@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 def filter_samples(samples, parameter_sampler, inference_params):
     net_mask = torch.ones(samples.shape[0], dtype=bool)
-    priors = parameter_sampler.parameters
+    priors = parameter_sampler.priors
     for i, param in enumerate(inference_params):
         prior = priors[param]
         curr_samples = samples[:, i]

@@ -49,8 +49,8 @@ def plot_aframe_response(
     plt.grid()
     plt.twinx()
 
-    plt.plot(times, ys, color="tab:gray", label="Raw", lw=2)
-    plt.plot(times, integrated, color="k", label="Integrated", lw=2)
+    plt.plot(times, ys, color="tab:gray", label="Network output", lw=2)
+    plt.plot(times, integrated, color="k", label="Integrated output", lw=2)
     plt.ylabel("Detection statistic")
     plt.legend(loc="upper right")
     plt.xlim(t0 + 94, t0 + 102)
@@ -75,7 +75,7 @@ def plot_amplfi_result(
     suffix = "".join([ifo[0] for ifo in ifos])
 
     skymap = result.to_skymap(
-        nside, min_samples_per_pix, use_distance=use_distance
+        nside, min_samples_per_pix, use_distance=use_distance, metadata = {"INSTRUME": ",".join(ifos)}
     )
     fits_skymap = io.fits.table_to_hdu(skymap)
     fits_fname = datadir / f"amplfi_{suffix}.fits"

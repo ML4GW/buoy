@@ -15,7 +15,7 @@ def cli(args=None):
     logging.getLogger("bilby").setLevel(logging.WARNING)
 
     parser = jsonargparse.ArgumentParser()
-    parser.add_function_arguments(main)
+    parser.add_function_arguments(main, fail_untyped=False, sub_configs=True)
     parser.add_argument("--config", action="config")
     args = parser.parse_args(args)
     args.pop("config")

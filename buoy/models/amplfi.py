@@ -11,7 +11,7 @@ from buoy.utils.pe import postprocess_samples, run_amplfi
 
 if TYPE_CHECKING:
     from amplfi.train.architectures.flows import FlowArchitecture
-    from amplfi.train.data.utils.utils import ParameterSampler
+    from amplfi.train.prior import AmplfiPrior 
 
 REPO_ID = "ML4GW/amplfi"
 
@@ -19,7 +19,7 @@ REPO_ID = "ML4GW/amplfi"
 @dataclass
 class AmplfiConfig:
     architecture: "FlowArchitecture"
-    parameter_sampler: "ParameterSampler"
+    parameter_sampler: "AmplfiPrior"
     sample_rate: float
     kernel_length: float
     inference_params: List[str]

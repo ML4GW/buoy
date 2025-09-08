@@ -11,8 +11,8 @@ from huggingface_hub.errors import EntryNotFoundError
 from ligo.gracedb.rest import GraceDb
 
 STRAIN_CHANNELS = {
-    "H1": "H1:GDS-CALIB_STRAIN",
-    "L1": "L1:GDS-CALIB_STRAIN",
+    "H1": "H1:GDS-CALIB_STRAIN_CLEAN",
+    "L1": "L1:GDS-CALIB_STRAIN_CLEAN",
     "V1": "V1:Hrec_hoft_16384Hz",
 }
 

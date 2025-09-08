@@ -139,7 +139,7 @@ def get_data(
     datafile = datadir / f"{event}.hdf5"
     if not datafile.exists():
         logging.info(
-            "Fetching open data from GWOSC between GPS times "
+            "Fetching data from between GPS times "
             f"{start} and {end} for {ifos}"
         )
 

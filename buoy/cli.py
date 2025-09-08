@@ -13,6 +13,7 @@ def cli(args=None):
         stream=sys.stdout,
     )
     logging.getLogger("bilby").setLevel(logging.WARNING)
+    logging.getLogger("gwdatafind").setLevel(logging.WARNING)
     logging.getLogger("matplotlib").setLevel(logging.WARNING)
 
     parser = jsonargparse.ArgumentParser()

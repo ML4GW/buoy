@@ -1,0 +1,12 @@
+name: buoy
+channels:
+  - conda-forge
+dependencies:
+  # python/env dependencies
+  - python=3.11
+  - pip
+  - uv=0.6.10
+  # frame file I/O dependencies
+  - python-ldas-tools-framecpp<3.0.0
+  - python-nds2-client
+  - python-ligo-lw

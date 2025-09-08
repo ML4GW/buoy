@@ -10,6 +10,12 @@ from huggingface_hub import hf_hub_download
 from huggingface_hub.errors import EntryNotFoundError
 from ligo.gracedb.rest import GraceDb
 
+STRAIN_CHANNELS = {
+    "H1": "H1:GDS-CALIB_STRAIN",
+    "L1": "L1:GDS-CALIB_STRAIN",
+    "V1": "V1:Hrec_hoft_16384Hz",
+}
+
 
 def get_local_or_hf(
     filename: Path,
@@ -139,7 +145,10 @@ def get_data(
 
         ts_dict = TimeSeriesDict()
         for ifo in ifos:
-            ts_dict[ifo] = TimeSeries.fetch_open_data(ifo, start, end)
+            if start < 1269363618:
+                ts_dict[ifo] = TimeSeries.fetch_open_data(ifo, start, end)
+            else:
+                ts_dict[ifo] = TimeSeries.get(STRAIN_CHANNELS[ifo], start, end)
         ts_dict = ts_dict.resample(sample_rate)
 
         logging.info(f"Saving data to file {datafile}")

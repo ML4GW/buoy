@@ -104,6 +104,7 @@ def slice_amplfi_data(
 def get_data(
     event: str,
     sample_rate: float,
+    psd_length: float,
     datadir: Path,
 ):
     if event.startswith("GW"):
@@ -127,9 +128,13 @@ def get_data(
                 "(e.g. G123456 or S123456)."
             )
 
+    # Make sure things start at an integer time for consistency.
+    # Take data from psd_length * (-1.5, 0.5) around the event
+    # time to make sure there's enough for analysis. This isn't
+    # totally robust, but should be good for most use cases.
     offset = event_time % 1
-    start = event_time - 96 - offset
-    end = event_time + 32 - offset
+    start = event_time - 1.5 * psd_length - offset
+    end = event_time + 0.5 * psd_length - offset
 
     datafile = datadir / f"{event}.hdf5"
     if not datafile.exists():

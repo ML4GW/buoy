@@ -99,7 +99,7 @@ def generate_html(
         label (str): Title for the HTML page.
     """
     html_content = html_header(label)
-    for image_path in plotdir.glob("*.png"):
+    for image_path in sorted(plotdir.glob("*.png")):
         caption = image_path.stem
         caption = caption.replace("_", " ")
         caption = (

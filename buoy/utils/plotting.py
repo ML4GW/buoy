@@ -1,9 +1,11 @@
+import warnings
 from pathlib import Path
 from typing import List, TYPE_CHECKING
 
 import matplotlib.pyplot as plt
 import numpy as np
 from astropy import io
+from gwpy.timeseries import TimeSeries
 from ligo.skymap.tool.ligo_skymap_plot import main as ligo_skymap_plot
 
 if TYPE_CHECKING:
@@ -15,6 +17,8 @@ plt.rcParams.update(
         "figure.dpi": 250,
     }
 )
+
+IFOS = ["H1", "L1", "V1"]
 
 
 def plot_aframe_response(
@@ -110,3 +114,48 @@ def plot_amplfi_result(
         filename=corner_fname,
     )
     plt.close()
+
+
+def q_plots(
+    data: np.ndarray,
+    t0: float,
+    plotdir: Path,
+    gpstime: float,
+    sample_rate: float,
+    amplfi_highpass: float,
+) -> None:
+    """
+    Create Q-plots of the whitened AMPLFI data
+
+    Args:
+        data: Array containing strain data
+        t0: Starting gpstime of the strain data
+        plotdir: Directory to save the plots
+        gpstime: GPS time of the event
+        sample_rate: Sample rate of the data
+        amplfi_highpass: Highpass value used for AMPLFI
+    """
+    for i, ifo in enumerate(IFOS[: len(data)]):
+        ts = TimeSeries(data[i], sample_rate=sample_rate, t0=t0)
+        try:
+            q_transform = ts.q_transform(
+                whiten=True,
+                gps=gpstime,
+                logf=True,
+                outseg=(gpstime - 1.5, gpstime + 0.5),
+                frange=(amplfi_highpass, np.inf),
+            )
+            qplot = q_transform.plot(epoch=gpstime)
+        except ValueError as e:
+            warnings.warn(
+                f"Failed to create Q-plot for {ifo} due to error {e}",
+                stacklevel=2,
+            )
+            continue
+        qplot.colorbar(
+            clim=(0, np.max(q_transform.value)), label="Normalized energy"
+        )
+        ax = qplot.gca()
+        ax.set_yscale("log")
+        qplot.savefig(plotdir / f"{ifo}_qtransform.png", dpi=150)
+        plt.close()

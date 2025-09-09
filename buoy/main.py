@@ -10,7 +10,11 @@ import torch
 from .models import Aframe, Amplfi
 from .utils.data import get_data
 from .utils.html import generate_html
-from .utils.plotting import plot_aframe_response, plot_amplfi_result
+from .utils.plotting import (
+    plot_aframe_response,
+    plot_amplfi_result,
+    q_plots,
+)
 
 
 def main(
@@ -146,6 +150,7 @@ def main(
         data, ifos, t0, event_time = get_data(
             event=event,
             sample_rate=aframe.sample_rate,
+            psd_length=aframe.psd_length,
             datadir=datadir,
         )
         data = torch.Tensor(data).double()
@@ -184,6 +189,16 @@ def main(
         )
         whitened_data = np.concatenate([whitened_times[None], whitened])
         np.save(datadir / "whitened_data.npy", whitened_data)
+
+        logging.info("Creating Q-plots")
+        q_plots(
+            data=data.squeeze().cpu().numpy(),
+            t0=t0,
+            plotdir=plotdir,
+            gpstime=event_time,
+            sample_rate=amplfi.sample_rate,
+            amplfi_highpass=amplfi.highpass,
+        )
 
         logging.info("Plotting Aframe response")
         plot_aframe_response(

@@ -14,7 +14,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
-    "amplfi>=0.5.2",
+    "amplfi>=0.5.5",
     "ml4gw>=0.7.4",
     "jsonargparse~=4.40",
     "h5py~=3.12",

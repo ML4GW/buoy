@@ -155,6 +155,7 @@ def get_data(
                 )
 
         ifos = list(ts_dict.keys())
+        logging.info(f"Fetched data for detectors {ifos}")
         if ifos not in [["H1", "L1"], ["H1", "L1", "V1"]]:
             raise ValueError(
                 f"Event {event} does not have the required detectors. "
@@ -174,10 +175,12 @@ def get_data(
         data = np.stack([ts_dict[ifo].value for ifo in ifos])[None]
 
     else:
-        logging.info(f"Loading {ifos} data from file for event {event}")
+        logging.info(f"Loading data from file for event {event}")
         with h5py.File(datafile, "r") as f:
-            data = np.stack([f[k][:] for k in f.keys()])[None]
+            ifos = list(f.keys())
+            data = np.stack([f[ifo][:] for ifo in ifos])[None]
             event_time = f.attrs["tc"]
             t0 = f.attrs["t0"]
+        logging.info(f"Loaded data for detectors {ifos}")
 
     return data, ifos, t0, event_time

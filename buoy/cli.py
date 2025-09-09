@@ -1,21 +1,8 @@
-import logging
-import sys
-
 import jsonargparse
 from buoy.main import main
 
 
 def cli(args=None):
-    log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    logging.basicConfig(
-        format=log_format,
-        level=logging.INFO,
-        stream=sys.stdout,
-    )
-    logging.getLogger("bilby").setLevel(logging.WARNING)
-    logging.getLogger("gwdatafind").setLevel(logging.WARNING)
-    logging.getLogger("matplotlib").setLevel(logging.WARNING)
-
     parser = jsonargparse.ArgumentParser()
     parser.add_function_arguments(main, fail_untyped=False, sub_configs=True)
     parser.add_argument("--config", action="config")

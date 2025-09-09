@@ -100,7 +100,13 @@ def plot_amplfi_result(
 
     corner_fname = plotdir / f"corner_plot_{suffix}.png"
     result.plot_corner(
-        parameters=["chirp_mass", "mass_ratio", "distance"],
+        parameters=[
+            "chirp_mass",
+            "mass_ratio",
+            "distance",
+            "mass_1",
+            "mass_2",
+        ],
         filename=corner_fname,
     )
     plt.close()

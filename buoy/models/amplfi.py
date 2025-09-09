@@ -55,7 +55,9 @@ class Amplfi(AmplfiConfig):
         )
 
         parser = ArgumentParser()
-        parser.add_class_arguments(AmplfiConfig, fail_untyped=False)
+        parser.add_class_arguments(
+            AmplfiConfig, fail_untyped=False, sub_configs=True
+        )
         parser.link_arguments(
             "inference_params",
             "architecture.init_args.num_params",

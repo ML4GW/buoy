@@ -1,7 +1,8 @@
 import logging
+import sys
+import warnings
 from pathlib import Path
 from typing import List, Optional, Union
-import warnings
 
 import numpy as np
 import torch
@@ -29,6 +30,7 @@ def main(
     device: Optional[str] = None,
     to_html: bool = False,
     seed: Optional[int] = None,
+    verbose: bool = False,
 ):
     """
     Main function to run Aframe and AMPLFI on the given events
@@ -76,7 +78,19 @@ def main(
             If True, generate an HTML summary page.
         seed:
             Random seed for reproducibility of AMPLFI results.
+        verbose:
+            If True, log at the DEBUG level. Else, log at INFO level.
     """
+    log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    logging.basicConfig(
+        format=log_format,
+        level=logging.DEBUG if verbose else logging.INFO,
+        stream=sys.stdout,
+    )
+    logging.getLogger("bilby").setLevel(logging.WARNING)
+    logging.getLogger("gwdatafind").setLevel(logging.WARNING)
+    logging.getLogger("matplotlib").setLevel(logging.WARNING)
+
     if seed is not None:
         torch.manual_seed(seed)
 

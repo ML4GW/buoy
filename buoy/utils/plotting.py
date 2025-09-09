@@ -59,6 +59,7 @@ def plot_aframe_response(
     plt.legend(loc="upper right")
     plt.xlim(t0 + 94, t0 + 102)
     plt.grid()
+    plt.title(f"Maximum detection statistic: {max(integrated):.2f}")
     plt.savefig(plotdir / "aframe_response.png", bbox_inches="tight")
     plt.close()
 

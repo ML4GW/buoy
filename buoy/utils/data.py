@@ -1,4 +1,5 @@
 import logging
+import warnings
 from pathlib import Path
 
 import gwosc
@@ -9,6 +10,12 @@ from gwpy.timeseries import TimeSeries, TimeSeriesDict
 from huggingface_hub import hf_hub_download
 from huggingface_hub.errors import EntryNotFoundError
 from ligo.gracedb.rest import GraceDb
+
+STRAIN_CHANNELS = {
+    "H1": "H1:GDS-CALIB_STRAIN_CLEAN",
+    "L1": "L1:GDS-CALIB_STRAIN_CLEAN",
+    "V1": "V1:Hrec_hoft_16384Hz",
+}
 
 
 def get_local_or_hf(
@@ -97,6 +104,7 @@ def slice_amplfi_data(
 def get_data(
     event: str,
     sample_rate: float,
+    psd_length: float,
     datadir: Path,
 ):
     if event.startswith("GW"):
@@ -120,26 +128,44 @@ def get_data(
                 "(e.g. G123456 or S123456)."
             )
 
+    # Make sure things start at an integer time for consistency.
+    # Take data from psd_length * (-1.5, 0.5) around the event
+    # time to make sure there's enough for analysis. This isn't
+    # totally robust, but should be good for most use cases.
     offset = event_time % 1
-    start = event_time - 96 - offset
-    end = event_time + 32 - offset
-
-    if ifos not in [["H1", "L1"], ["H1", "L1", "V1"]]:
-        raise ValueError(
-            f"Event {event} does not have the required detectors. "
-            f"Expected ['H1', 'L1'] or ['H1', 'L1', 'V1'], got {ifos}"
-        )
+    start = event_time - 1.5 * psd_length - offset
+    end = event_time + 0.5 * psd_length - offset
 
     datafile = datadir / f"{event}.hdf5"
     if not datafile.exists():
         logging.info(
-            "Fetching open data from GWOSC between GPS times "
+            "Fetching data from between GPS times "
             f"{start} and {end} for {ifos}"
         )
 
         ts_dict = TimeSeriesDict()
         for ifo in ifos:
-            ts_dict[ifo] = TimeSeries.fetch_open_data(ifo, start, end)
+            if start < 1269363618:
+                ts_dict[ifo] = TimeSeries.fetch_open_data(ifo, start, end)
+            else:
+                ts_dict[ifo] = TimeSeries.get(STRAIN_CHANNELS[ifo], start, end)
+
+            span = ts_dict[ifo].span
+            if span.end - span.start < 128:
+                ts_dict.pop(ifo)
+                warnings.warn(
+                    f"Detector {ifo} did not have sufficient data surrounding "
+                    "the event time, removing it from the dataset",
+                    stacklevel=2,
+                )
+
+        ifos = list(ts_dict.keys())
+        logging.info(f"Fetched data for detectors {ifos}")
+        if ifos not in [["H1", "L1"], ["H1", "L1", "V1"]]:
+            raise ValueError(
+                f"Event {event} does not have the required detectors. "
+                f"Expected ['H1', 'L1'] or ['H1', 'L1', 'V1'], got {ifos}"
+            )
         ts_dict = ts_dict.resample(sample_rate)
 
         logging.info(f"Saving data to file {datafile}")
@@ -154,10 +180,12 @@ def get_data(
         data = np.stack([ts_dict[ifo].value for ifo in ifos])[None]
 
     else:
-        logging.info(f"Loading {ifos} data from file for event {event}")
+        logging.info(f"Loading data from file for event {event}")
         with h5py.File(datafile, "r") as f:
+            ifos = list(f.keys())
             data = np.stack([f[ifo][:] for ifo in ifos])[None]
             event_time = f.attrs["tc"]
             t0 = f.attrs["t0"]
+        logging.info(f"Loaded data for detectors {ifos}")
 
     return data, ifos, t0, event_time

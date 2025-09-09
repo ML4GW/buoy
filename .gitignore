@@ -1,4 +1,6 @@
 outdir
 dist
+ml4gw_buoy.egg-info
+build
 
 **/__pycache__

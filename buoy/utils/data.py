@@ -1,4 +1,5 @@
 import logging
+import warnings
 from pathlib import Path
 
 import gwosc
@@ -130,12 +131,6 @@ def get_data(
     start = event_time - 96 - offset
     end = event_time + 32 - offset
 
-    if ifos not in [["H1", "L1"], ["H1", "L1", "V1"]]:
-        raise ValueError(
-            f"Event {event} does not have the required detectors. "
-            f"Expected ['H1', 'L1'] or ['H1', 'L1', 'V1'], got {ifos}"
-        )
-
     datafile = datadir / f"{event}.hdf5"
     if not datafile.exists():
         logging.info(
@@ -149,6 +144,22 @@ def get_data(
                 ts_dict[ifo] = TimeSeries.fetch_open_data(ifo, start, end)
             else:
                 ts_dict[ifo] = TimeSeries.get(STRAIN_CHANNELS[ifo], start, end)
+
+            span = ts_dict[ifo].span
+            if span.end - span.start < 128:
+                ts_dict.pop(ifo)
+                warnings.warn(
+                    f"Detector {ifo} did not have sufficient data surrounding "
+                    "the event time, removing it from the dataset",
+                    stacklevel=2,
+                )
+
+        ifos = list(ts_dict.keys())
+        if ifos not in [["H1", "L1"], ["H1", "L1", "V1"]]:
+            raise ValueError(
+                f"Event {event} does not have the required detectors. "
+                f"Expected ['H1', 'L1'] or ['H1', 'L1', 'V1'], got {ifos}"
+            )
         ts_dict = ts_dict.resample(sample_rate)
 
         logging.info(f"Saving data to file {datafile}")
@@ -165,7 +176,7 @@ def get_data(
     else:
         logging.info(f"Loading {ifos} data from file for event {event}")
         with h5py.File(datafile, "r") as f:
-            data = np.stack([f[ifo][:] for ifo in ifos])[None]
+            data = np.stack([f[k][:] for k in f.keys()])[None]
             event_time = f.attrs["tc"]
             t0 = f.attrs["t0"]
 

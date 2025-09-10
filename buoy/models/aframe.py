@@ -25,6 +25,7 @@ class AframeConfig:
     highpass: float
     fftlength: float
     inference_sampling_rate: float
+    offline_sampling_rate: float
     batch_size: int
     aframe_right_pad: float
     integration_window_length: float
@@ -62,6 +63,9 @@ class Aframe(AframeConfig):
 
         super().__init__(**vars(args))
         self.configure_preprocessing()
+        self.online_offline_stride = int(
+            self.inference_sampling_rate / self.offline_sampling_rate
+        )
 
     def update_config(self, **kwargs):
         """
@@ -180,12 +184,22 @@ class Aframe(AframeConfig):
         tf = t0 + len(ys) / self.inference_sampling_rate
         times = np.arange(t0, tf, 1 / self.inference_sampling_rate)
 
-        window_size = (
+        online_window_size = (
             int(self.integration_window_length * self.inference_sampling_rate)
             + 1
         )
-        window = np.ones(window_size) / window_size
-        integrated = np.convolve(ys, window, mode="full")
-        integrated = integrated[: -window_size + 1]
+        online_window = np.ones(online_window_size) / online_window_size
+        timing_integrated = np.convolve(ys, online_window, mode="full")
+        timing_integrated = timing_integrated[: -online_window_size + 1]
 
-        return times, ys, integrated
+        offline_window_size = (
+            int(self.integration_window_length * self.offline_sampling_rate)
+            + 1
+        )
+        offline_window = np.ones(offline_window_size) / offline_window_size
+        signif_integrated = np.convolve(
+            ys[:: self.online_offline_stride], offline_window, mode="full"
+        )
+        signif_integrated = signif_integrated[: -offline_window_size + 1]
+
+        return times, ys, timing_integrated, signif_integrated

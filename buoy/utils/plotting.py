@@ -24,7 +24,8 @@ IFOS = ["H1", "L1", "V1"]
 def plot_aframe_response(
     times: np.ndarray,
     ys: np.ndarray,
-    integrated: np.ndarray,
+    timing_integrated: np.ndarray,
+    signif_integrated: np.ndarray,
     whitened: np.ndarray,
     whitened_times: np.ndarray,
     t0: float,
@@ -42,6 +43,8 @@ def plot_aframe_response(
     t0 -= event_time
     tc -= event_time
 
+    stride = int(len(timing_integrated) / len(signif_integrated))
+
     plt.figure(figsize=(12, 8))
     plt.plot(whitened_times, whitened[0], label="H1", alpha=0.3)
     plt.plot(whitened_times, whitened[1], label="L1", alpha=0.3)
@@ -54,12 +57,22 @@ def plot_aframe_response(
     plt.twinx()
 
     plt.plot(times, ys, color="tab:gray", label="Network output", lw=2)
-    plt.plot(times, integrated, color="k", label="Integrated output", lw=2)
+    plt.plot(
+        times, timing_integrated, color="k", label="Integrated (timing)", lw=2
+    )
+    plt.plot(
+        times[::stride],
+        signif_integrated,
+        color="k",
+        label="Integrated (significance)",
+        lw=2,
+        ls="--",
+    )
     plt.ylabel("Detection statistic")
     plt.legend(loc="upper right")
     plt.xlim(t0 + 94, t0 + 102)
     plt.grid()
-    plt.title(f"Maximum detection statistic: {max(integrated):.2f}")
+    plt.title(f"Detection statistic: {max(signif_integrated):.2f}")
     plt.savefig(plotdir / "aframe_response.png", bbox_inches="tight")
     plt.close()
 

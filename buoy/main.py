@@ -158,11 +158,13 @@ def main(
 
         logging.info("Running Aframe")
 
-        times, ys, integrated = aframe(data[:, :2], t0)
+        times, ys, timing_integrated, signif_integrated = aframe(
+            data[:, :2], t0
+        )
         if use_true_tc_for_amplfi:
             tc = event_time
         else:
-            tc = times[np.argmax(integrated)] + aframe.time_offset
+            tc = times[np.argmax(timing_integrated)] + aframe.time_offset
 
         logging.info("Running AMPLFI model")
         amplfi = amplfi_hl if data.shape[1] == 2 else amplfi_hlv
@@ -204,7 +206,8 @@ def main(
         plot_aframe_response(
             times=times,
             ys=ys,
-            integrated=integrated,
+            timing_integrated=timing_integrated,
+            signif_integrated=signif_integrated,
             whitened=whitened,
             whitened_times=whitened_times,
             t0=t0,

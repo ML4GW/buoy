@@ -1,0 +1,467 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>buoy.main &mdash; buoy 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            buoy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage.html">Usage</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">buoy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">buoy.main</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for buoy.main</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">h5py</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Aframe</span><span class="p">,</span> <span class="n">Amplfi</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.utils.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_data</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.utils.html</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_html</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.utils.plotting</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">plot_aframe_response</span><span class="p">,</span>
+    <span class="n">plot_amplfi_result</span><span class="p">,</span>
+    <span class="n">q_plots</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_resolve_device</span><span class="p">(</span><span class="n">device</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">device</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span>
+    <span class="k">if</span> <span class="n">device</span> <span class="o">==</span> <span class="s2">&quot;cpu&quot;</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;Device is set to &#39;cpu&#39;. This will take about &quot;</span>
+            <span class="s2">&quot;15 minutes to run with default settings. &quot;</span>
+            <span class="s2">&quot;If a GPU is available, set &#39;--device cuda&#39;. &quot;</span><span class="p">,</span>
+            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">device</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;cuda&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Device is set to </span><span class="si">{</span><span class="n">device</span><span class="si">}</span><span class="s2">, but no GPU is available. &quot;</span>
+            <span class="s2">&quot;Please set device to &#39;cpu&#39; or move to a node with &quot;</span>
+            <span class="s2">&quot;a GPU.&quot;</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">device</span>
+
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../../api.html#buoy.main">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span>
+    <span class="n">events</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">outdir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="n">samples_per_event</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20000</span><span class="p">,</span>
+    <span class="n">nside</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">64</span><span class="p">,</span>
+    <span class="n">min_samples_per_pix</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+    <span class="n">use_distance</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">aframe_weights</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">amplfi_hl_weights</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">amplfi_hlv_weights</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">aframe_config</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">amplfi_hl_config</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">amplfi_hlv_config</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">aframe_revision</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">amplfi_revision</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">model_cache_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">use_true_tc_for_amplfi</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">ifos</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">device</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">to_html</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">run_aframe</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">run_amplfi</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">generate_plots</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">force</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">corner_parameters</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Main function to run Aframe and AMPLFI on the given events</span>
+<span class="sd">    and produce output plots.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        events:</span>
+<span class="sd">            Gravitational wave event name(s) to process. Accepts known</span>
+<span class="sd">            event names (e.g. GW150914), GraceDB events (e.g. G363842),</span>
+<span class="sd">            GraceDB superevents (e.g. S200213t), or GPS times</span>
+<span class="sd">            (e.g. 1187008882.4).</span>
+<span class="sd">        outdir:</span>
+<span class="sd">            Output directory to save results.</span>
+<span class="sd">        samples_per_event:</span>
+<span class="sd">            Number of samples for AMPLFI to generate for each event.</span>
+<span class="sd">        nside:</span>
+<span class="sd">            Healpix resolution for AMPLFI skymap</span>
+<span class="sd">        min_samples_per_pix:</span>
+<span class="sd">            Minimum number of samples per healpix pixel</span>
+<span class="sd">            required to estimate parameters of the distance</span>
+<span class="sd">            ansatz</span>
+<span class="sd">        use_distance:</span>
+<span class="sd">            If true, use distance samples to create a 3D skymap</span>
+<span class="sd">        aframe_weights:</span>
+<span class="sd">            Path to Aframe model weights. Can be a local path</span>
+<span class="sd">            or in the ML4GW/aframe Hugging Face repository.</span>
+<span class="sd">        amplfi_hl_weights:</span>
+<span class="sd">            Path to AMPLFI HL model weights. Can be a local path</span>
+<span class="sd">            or in the ML4GW/amplfi Hugging Face repository.</span>
+<span class="sd">        amplfi_hlv_weights:</span>
+<span class="sd">            Path to AMPLFI HLV model weights. Can be a local path</span>
+<span class="sd">            or in the ML4GW/amplfi Hugging Face repository.</span>
+<span class="sd">        aframe_config:</span>
+<span class="sd">            Path to Aframe config file. Can be a local path</span>
+<span class="sd">            or in the ML4GW/aframe Hugging Face repository.</span>
+<span class="sd">        amplfi_hl_config:</span>
+<span class="sd">            Path to AMPLFI HL config file. Can be a local path</span>
+<span class="sd">            or in the ML4GW/amplfi Hugging Face repository.</span>
+<span class="sd">        amplfi_hlv_config:</span>
+<span class="sd">            Path to AMPLFI HLV config file. Can be a local path</span>
+<span class="sd">            or in the ML4GW/amplfi Hugging Face repository.</span>
+<span class="sd">        aframe_revision:</span>
+<span class="sd">            HuggingFace repository revision (branch, tag, or commit</span>
+<span class="sd">            hash) for Aframe model weights and config. If None, uses</span>
+<span class="sd">            the default branch.</span>
+<span class="sd">        amplfi_revision:</span>
+<span class="sd">            HuggingFace repository revision (branch, tag, or commit</span>
+<span class="sd">            hash) for AMPLFI model weights and config. If None, uses</span>
+<span class="sd">            the default branch.</span>
+<span class="sd">        model_cache_dir:</span>
+<span class="sd">            Local directory to use as the HuggingFace download cache</span>
+<span class="sd">            for model weights and configs. If None, uses the default</span>
+<span class="sd">            HuggingFace cache location (~/.cache/huggingface).</span>
+<span class="sd">        use_true_tc_for_amplfi:</span>
+<span class="sd">            If True, use the true time of coalescence for AMPLFI.</span>
+<span class="sd">            Else, use the merger time inferred from Aframe.</span>
+<span class="sd">        ifos:</span>
+<span class="sd">            List of detectors to use when fetching data for a GPS time</span>
+<span class="sd">            event. Ignored for named events (GW/G/S), which look up</span>
+<span class="sd">            detectors automatically. Defaults to [&quot;H1&quot;, &quot;L1&quot;, &quot;V1&quot;].</span>
+<span class="sd">        device:</span>
+<span class="sd">            Device to run the models on (&quot;cpu&quot; or &quot;cuda&quot;).</span>
+<span class="sd">        to_html:</span>
+<span class="sd">            If True, generate an HTML summary page.</span>
+<span class="sd">        seed:</span>
+<span class="sd">            Random seed for reproducibility of AMPLFI results.</span>
+<span class="sd">        verbose:</span>
+<span class="sd">            If True, log at the DEBUG level. Else, log at INFO level.</span>
+<span class="sd">        run_aframe:</span>
+<span class="sd">            If True, run Aframe inference and save outputs. If False,</span>
+<span class="sd">            load previously saved Aframe outputs if available.</span>
+<span class="sd">        run_amplfi:</span>
+<span class="sd">            If True, run AMPLFI inference and save posterior samples.</span>
+<span class="sd">            If False, skip parameter estimation and PE plots.</span>
+<span class="sd">        generate_plots:</span>
+<span class="sd">            If True, generate all output plots. If False, skip plotting.</span>
+<span class="sd">        force:</span>
+<span class="sd">            If True, reprocess events even if output files already exist.</span>
+<span class="sd">            If False, skip events whose inference outputs are all present.</span>
+<span class="sd">        corner_parameters:</span>
+<span class="sd">            List of parameter names to include in the AMPLFI corner plot.</span>
+<span class="sd">            Defaults to [&quot;chirp_mass&quot;, &quot;mass_ratio&quot;, &quot;distance&quot;,</span>
+<span class="sd">            &quot;mass_1&quot;, &quot;mass_2&quot;].</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">log_format</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%(asctime)s</span><span class="s2"> - </span><span class="si">%(name)s</span><span class="s2"> - </span><span class="si">%(levelname)s</span><span class="s2"> - </span><span class="si">%(message)s</span><span class="s2">&quot;</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span>
+        <span class="nb">format</span><span class="o">=</span><span class="n">log_format</span><span class="p">,</span>
+        <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span> <span class="k">if</span> <span class="n">verbose</span> <span class="k">else</span> <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
+        <span class="n">stream</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;bilby&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">)</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;gwdatafind&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">)</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;matplotlib&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+
+    <span class="n">device</span> <span class="o">=</span> <span class="n">_resolve_device</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Setting up models&quot;</span><span class="p">)</span>
+
+    <span class="n">aframe</span> <span class="o">=</span> <span class="n">Aframe</span><span class="p">(</span>
+        <span class="n">model_weights</span><span class="o">=</span><span class="n">aframe_weights</span> <span class="ow">or</span> <span class="s2">&quot;aframe.pt&quot;</span><span class="p">,</span>
+        <span class="n">config</span><span class="o">=</span><span class="n">aframe_config</span> <span class="ow">or</span> <span class="s2">&quot;aframe_config.yaml&quot;</span><span class="p">,</span>
+        <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
+        <span class="n">revision</span><span class="o">=</span><span class="n">aframe_revision</span><span class="p">,</span>
+        <span class="n">load_weights</span><span class="o">=</span><span class="n">run_aframe</span><span class="p">,</span>
+        <span class="n">cache_dir</span><span class="o">=</span><span class="n">model_cache_dir</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">amplfi_hl</span> <span class="o">=</span> <span class="n">Amplfi</span><span class="p">(</span>
+        <span class="n">model_weights</span><span class="o">=</span><span class="n">amplfi_hl_weights</span> <span class="ow">or</span> <span class="s2">&quot;amplfi-hl.ckpt&quot;</span><span class="p">,</span>
+        <span class="n">config</span><span class="o">=</span><span class="n">amplfi_hl_config</span> <span class="ow">or</span> <span class="s2">&quot;amplfi-hl-config.yaml&quot;</span><span class="p">,</span>
+        <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
+        <span class="n">revision</span><span class="o">=</span><span class="n">amplfi_revision</span><span class="p">,</span>
+        <span class="n">load_weights</span><span class="o">=</span><span class="n">run_amplfi</span><span class="p">,</span>
+        <span class="n">cache_dir</span><span class="o">=</span><span class="n">model_cache_dir</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">amplfi_hlv</span> <span class="o">=</span> <span class="n">Amplfi</span><span class="p">(</span>
+        <span class="n">model_weights</span><span class="o">=</span><span class="n">amplfi_hlv_weights</span> <span class="ow">or</span> <span class="s2">&quot;amplfi-hlv.ckpt&quot;</span><span class="p">,</span>
+        <span class="n">config</span><span class="o">=</span><span class="n">amplfi_hlv_config</span> <span class="ow">or</span> <span class="s2">&quot;amplfi-hlv-config.yaml&quot;</span><span class="p">,</span>
+        <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
+        <span class="n">revision</span><span class="o">=</span><span class="n">amplfi_revision</span><span class="p">,</span>
+        <span class="n">load_weights</span><span class="o">=</span><span class="n">run_amplfi</span><span class="p">,</span>
+        <span class="n">cache_dir</span><span class="o">=</span><span class="n">model_cache_dir</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span>
+        <span class="n">aframe</span><span class="o">.</span><span class="n">sample_rate</span> <span class="o">==</span> <span class="n">amplfi_hl</span><span class="o">.</span><span class="n">sample_rate</span> <span class="o">==</span> <span class="n">amplfi_hlv</span><span class="o">.</span><span class="n">sample_rate</span>
+    <span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Sample rate mismatch: Aframe=</span><span class="si">{</span><span class="n">aframe</span><span class="o">.</span><span class="n">sample_rate</span><span class="si">}</span><span class="s2">, &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;AMPLFI-HL=</span><span class="si">{</span><span class="n">amplfi_hl</span><span class="o">.</span><span class="n">sample_rate</span><span class="si">}</span><span class="s2">, &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;AMPLFI-HLV=</span><span class="si">{</span><span class="n">amplfi_hlv</span><span class="o">.</span><span class="n">sample_rate</span><span class="si">}</span><span class="s2">. All models must match.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">events</span> <span class="o">=</span> <span class="p">[</span><span class="n">events</span><span class="p">]</span>
+
+    <span class="n">default_ifos</span> <span class="o">=</span> <span class="n">ifos</span>
+    <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">events</span><span class="p">:</span>
+        <span class="n">datadir</span> <span class="o">=</span> <span class="n">outdir</span> <span class="o">/</span> <span class="nb">str</span><span class="p">(</span><span class="n">event</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;data&quot;</span>
+        <span class="n">plotdir</span> <span class="o">=</span> <span class="n">outdir</span> <span class="o">/</span> <span class="nb">str</span><span class="p">(</span><span class="n">event</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;plots&quot;</span>
+        <span class="n">datadir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">plotdir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">aframe_output_file</span> <span class="o">=</span> <span class="n">datadir</span> <span class="o">/</span> <span class="s2">&quot;aframe_outputs.hdf5&quot;</span>
+        <span class="n">amplfi_output_file</span> <span class="o">=</span> <span class="n">datadir</span> <span class="o">/</span> <span class="s2">&quot;posterior_samples.dat&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">force</span><span class="p">:</span>
+            <span class="n">aframe_done</span> <span class="o">=</span> <span class="n">aframe_output_file</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
+            <span class="n">amplfi_done</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">run_amplfi</span> <span class="ow">or</span> <span class="n">amplfi_output_file</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">aframe_done</span> <span class="ow">and</span> <span class="n">amplfi_done</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Skipping </span><span class="si">{</span><span class="n">event</span><span class="si">}</span><span class="s2">: outputs already present. &quot;</span>
+                    <span class="s2">&quot;Use --force to reprocess.&quot;</span>
+                <span class="p">)</span>
+                <span class="k">continue</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Fetching or loading data&quot;</span><span class="p">)</span>
+        <span class="n">data</span><span class="p">,</span> <span class="n">ifos</span><span class="p">,</span> <span class="n">t0</span><span class="p">,</span> <span class="n">event_time</span> <span class="o">=</span> <span class="n">get_data</span><span class="p">(</span>
+            <span class="n">event</span><span class="o">=</span><span class="n">event</span><span class="p">,</span>
+            <span class="n">sample_rate</span><span class="o">=</span><span class="n">aframe</span><span class="o">.</span><span class="n">sample_rate</span><span class="p">,</span>
+            <span class="n">psd_length</span><span class="o">=</span><span class="n">aframe</span><span class="o">.</span><span class="n">psd_length</span><span class="p">,</span>
+            <span class="n">datadir</span><span class="o">=</span><span class="n">datadir</span><span class="p">,</span>
+            <span class="n">ifos</span><span class="o">=</span><span class="n">default_ifos</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">double</span><span class="p">()</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+
+        <span class="n">amplfi_model</span> <span class="o">=</span> <span class="n">amplfi_hl</span> <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span> <span class="k">else</span> <span class="n">amplfi_hlv</span>
+
+        <span class="k">if</span> <span class="n">run_aframe</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Running Aframe&quot;</span><span class="p">)</span>
+            <span class="n">times</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">timing_integrated</span><span class="p">,</span> <span class="n">signif_integrated</span> <span class="o">=</span> <span class="n">aframe</span><span class="p">(</span>
+                <span class="n">data</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">2</span><span class="p">],</span> <span class="n">t0</span>
+            <span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Saving Aframe outputs&quot;</span><span class="p">)</span>
+            <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">aframe_output_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s2">&quot;times&quot;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">times</span><span class="p">)</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s2">&quot;ys&quot;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">ys</span><span class="p">)</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s2">&quot;timing_integrated&quot;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">timing_integrated</span><span class="p">)</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s2">&quot;signif_integrated&quot;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">signif_integrated</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Loading saved Aframe outputs&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">aframe_output_file</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Aframe output file </span><span class="si">{</span><span class="n">aframe_output_file</span><span class="si">}</span><span class="s2"> not found. &quot;</span>
+                    <span class="s2">&quot;Run with run_aframe=True first.&quot;</span>
+                <span class="p">)</span>
+            <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">aframe_output_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">times</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;times&quot;</span><span class="p">][:]</span>
+                <span class="n">ys</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;ys&quot;</span><span class="p">][:]</span>
+                <span class="n">timing_integrated</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;timing_integrated&quot;</span><span class="p">][:]</span>
+                <span class="n">signif_integrated</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;signif_integrated&quot;</span><span class="p">][:]</span>
+
+        <span class="k">if</span> <span class="n">use_true_tc_for_amplfi</span><span class="p">:</span>
+            <span class="n">tc</span> <span class="o">=</span> <span class="n">event_time</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">tc</span> <span class="o">=</span> <span class="n">times</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">timing_integrated</span><span class="p">)]</span> <span class="o">+</span> <span class="n">aframe</span><span class="o">.</span><span class="n">time_offset</span>
+
+        <span class="k">if</span> <span class="n">run_amplfi</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Running AMPLFI model&quot;</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">amplfi_model</span><span class="p">(</span>
+                <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+                <span class="n">t0</span><span class="o">=</span><span class="n">t0</span><span class="p">,</span>
+                <span class="n">tc</span><span class="o">=</span><span class="n">tc</span><span class="p">,</span>
+                <span class="n">samples_per_event</span><span class="o">=</span><span class="n">samples_per_event</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Compute whitened data for plotting later</span>
+            <span class="c1"># Use the first psd_length seconds of data</span>
+            <span class="c1"># to calculate the PSD and whiten the rest</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">amplfi_model</span><span class="o">.</span><span class="n">sample_rate</span> <span class="o">*</span> <span class="n">amplfi_model</span><span class="o">.</span><span class="n">psd_length</span><span class="p">)</span>
+            <span class="n">psd</span> <span class="o">=</span> <span class="n">amplfi_model</span><span class="o">.</span><span class="n">spectral_density</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="n">idx</span><span class="p">])</span>
+            <span class="n">whitened</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">amplfi_model</span><span class="o">.</span><span class="n">whitener</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">idx</span><span class="p">:],</span> <span class="n">psd</span><span class="p">)</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+            <span class="p">)</span>
+            <span class="n">whitened</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">whitened</span><span class="p">)</span>
+            <span class="n">whitened_start</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">t0</span> <span class="o">+</span> <span class="n">amplfi_model</span><span class="o">.</span><span class="n">psd_length</span> <span class="o">+</span> <span class="n">amplfi_model</span><span class="o">.</span><span class="n">fduration</span> <span class="o">/</span> <span class="mi">2</span>
+            <span class="p">)</span>
+            <span class="n">whitened_end</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">t0</span>
+                <span class="o">+</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">amplfi_model</span><span class="o">.</span><span class="n">sample_rate</span>
+                <span class="o">-</span> <span class="n">amplfi_model</span><span class="o">.</span><span class="n">fduration</span> <span class="o">/</span> <span class="mi">2</span>
+            <span class="p">)</span>
+            <span class="n">whitened_times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span>
+                <span class="n">whitened_start</span><span class="p">,</span> <span class="n">whitened_end</span><span class="p">,</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">amplfi_model</span><span class="o">.</span><span class="n">sample_rate</span>
+            <span class="p">)</span>
+            <span class="n">whitened_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">whitened_times</span><span class="p">[</span><span class="kc">None</span><span class="p">],</span> <span class="n">whitened</span><span class="p">])</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">datadir</span> <span class="o">/</span> <span class="s2">&quot;whitened_data.npy&quot;</span><span class="p">,</span> <span class="n">whitened_data</span><span class="p">)</span>
+
+            <span class="n">result</span><span class="o">.</span><span class="n">save_posterior_samples</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">amplfi_output_file</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">generate_plots</span><span class="p">:</span>
+            <span class="n">whitened_data_file</span> <span class="o">=</span> <span class="n">datadir</span> <span class="o">/</span> <span class="s2">&quot;whitened_data.npy&quot;</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">whitened_data_file</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s2">&quot;Whitened data not found, skipping plots that require it. &quot;</span>
+                    <span class="s2">&quot;Run with run_amplfi=True to generate whitened data.&quot;</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">run_amplfi</span><span class="p">:</span>
+                    <span class="n">whitened_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">whitened_data_file</span><span class="p">)</span>
+                    <span class="n">whitened_times</span> <span class="o">=</span> <span class="n">whitened_arr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">whitened</span> <span class="o">=</span> <span class="n">whitened_arr</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Creating Q-plots&quot;</span><span class="p">)</span>
+                <span class="n">q_plots</span><span class="p">(</span>
+                    <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span>
+                    <span class="n">t0</span><span class="o">=</span><span class="n">t0</span><span class="p">,</span>
+                    <span class="n">plotdir</span><span class="o">=</span><span class="n">plotdir</span><span class="p">,</span>
+                    <span class="n">gpstime</span><span class="o">=</span><span class="n">event_time</span><span class="p">,</span>
+                    <span class="n">sample_rate</span><span class="o">=</span><span class="n">amplfi_model</span><span class="o">.</span><span class="n">sample_rate</span><span class="p">,</span>
+                    <span class="n">amplfi_highpass</span><span class="o">=</span><span class="n">amplfi_model</span><span class="o">.</span><span class="n">highpass</span><span class="p">,</span>
+                <span class="p">)</span>
+
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Plotting Aframe response&quot;</span><span class="p">)</span>
+                <span class="n">plot_aframe_response</span><span class="p">(</span>
+                    <span class="n">times</span><span class="o">=</span><span class="n">times</span><span class="p">,</span>
+                    <span class="n">ys</span><span class="o">=</span><span class="n">ys</span><span class="p">,</span>
+                    <span class="n">timing_integrated</span><span class="o">=</span><span class="n">timing_integrated</span><span class="p">,</span>
+                    <span class="n">signif_integrated</span><span class="o">=</span><span class="n">signif_integrated</span><span class="p">,</span>
+                    <span class="n">whitened</span><span class="o">=</span><span class="n">whitened</span><span class="p">,</span>
+                    <span class="n">whitened_times</span><span class="o">=</span><span class="n">whitened_times</span><span class="p">,</span>
+                    <span class="n">t0</span><span class="o">=</span><span class="n">t0</span><span class="p">,</span>
+                    <span class="n">tc</span><span class="o">=</span><span class="n">tc</span><span class="p">,</span>
+                    <span class="n">event_time</span><span class="o">=</span><span class="n">event_time</span><span class="p">,</span>
+                    <span class="n">plotdir</span><span class="o">=</span><span class="n">plotdir</span><span class="p">,</span>
+                <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">run_amplfi</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Plotting AMPLFI result&quot;</span><span class="p">)</span>
+                <span class="n">plot_amplfi_result</span><span class="p">(</span>
+                    <span class="n">result</span><span class="o">=</span><span class="n">result</span><span class="p">,</span>
+                    <span class="n">nside</span><span class="o">=</span><span class="n">nside</span><span class="p">,</span>
+                    <span class="n">min_samples_per_pix</span><span class="o">=</span><span class="n">min_samples_per_pix</span><span class="p">,</span>
+                    <span class="n">use_distance</span><span class="o">=</span><span class="n">use_distance</span><span class="p">,</span>
+                    <span class="n">ifos</span><span class="o">=</span><span class="n">ifos</span><span class="p">,</span>
+                    <span class="n">datadir</span><span class="o">=</span><span class="n">datadir</span><span class="p">,</span>
+                    <span class="n">plotdir</span><span class="o">=</span><span class="n">plotdir</span><span class="p">,</span>
+                    <span class="n">corner_parameters</span><span class="o">=</span><span class="n">corner_parameters</span><span class="p">,</span>
+                <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">to_html</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Generating HTML page&quot;</span><span class="p">)</span>
+            <span class="n">generate_html</span><span class="p">(</span>
+                <span class="n">plotdir</span><span class="o">=</span><span class="n">plotdir</span><span class="p">,</span>
+                <span class="n">output_file</span><span class="o">=</span><span class="n">outdir</span> <span class="o">/</span> <span class="nb">str</span><span class="p">(</span><span class="n">event</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;summary.html&quot;</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">event</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; Event Summary&quot;</span><span class="p">,</span>
+            <span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, ML4GW.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,341 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>buoy.models.aframe &mdash; buoy 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            buoy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usage.html">Usage</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">buoy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">buoy.models.aframe</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for buoy.models.aframe</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">jsonargparse</span><span class="w"> </span><span class="kn">import</span> <span class="n">ArgumentParser</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">buoy.models.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BuoyModel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">buoy.utils.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_local_or_hf</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">buoy.utils.preprocessing</span><span class="w"> </span><span class="kn">import</span> <span class="n">BackgroundSnapshotter</span><span class="p">,</span> <span class="n">BatchWhitener</span>
+
+<span class="n">REPO_ID</span> <span class="o">=</span> <span class="s2">&quot;ML4GW/aframe&quot;</span>
+
+
+<div class="viewcode-block" id="AframeConfig">
+<a class="viewcode-back" href="../../../buoy.models.html#buoy.AframeConfig">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">AframeConfig</span><span class="p">:</span>
+    <span class="n">sample_rate</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">kernel_length</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">psd_length</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">fduration</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">highpass</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">fftlength</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">inference_sampling_rate</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">offline_sampling_rate</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">aframe_right_pad</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">integration_window_length</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">lowpass</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="Aframe">
+<a class="viewcode-back" href="../../../buoy.models.html#buoy.Aframe">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Aframe</span><span class="p">(</span><span class="n">AframeConfig</span><span class="p">,</span> <span class="n">BuoyModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Aframe neural network model for gravitational wave detection.</span>
+
+<span class="sd">    Wraps a trained TorchScript model and its associated preprocessing</span>
+<span class="sd">    pipeline. Config attributes (``sample_rate``, ``psd_length``, etc.)</span>
+<span class="sd">    are always loaded; neural network weights are only loaded when</span>
+<span class="sd">    ``load_weights=True``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">model_weights</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">=</span> <span class="s2">&quot;aframe.pt&quot;</span><span class="p">,</span>
+        <span class="n">config</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">=</span> <span class="s2">&quot;aframe_config.yaml&quot;</span><span class="p">,</span>
+        <span class="n">device</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">revision</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">load_weights</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">cache_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            model_weights:</span>
+<span class="sd">                Path to TorchScript weights (`.pt`) or filename in the</span>
+<span class="sd">                ``ML4GW/aframe`` HuggingFace repository.</span>
+<span class="sd">            config:</span>
+<span class="sd">                Path to YAML config or filename in the ``ML4GW/aframe``</span>
+<span class="sd">                HuggingFace repository.</span>
+<span class="sd">            device:</span>
+<span class="sd">                Device to run inference on (``&quot;cpu&quot;`` or ``&quot;cuda&quot;``).</span>
+<span class="sd">                If ``None``, uses CUDA when available, otherwise CPU.</span>
+<span class="sd">            revision:</span>
+<span class="sd">                HuggingFace repository revision (branch, tag, or commit</span>
+<span class="sd">                hash). If ``None``, uses the default branch.</span>
+<span class="sd">            load_weights:</span>
+<span class="sd">                If ``True``, download and load the neural network weights.</span>
+<span class="sd">                Set to ``False`` to load only the config (e.g. to inspect</span>
+<span class="sd">                hyperparameters without allocating GPU memory).</span>
+<span class="sd">            cache_dir:</span>
+<span class="sd">                Local directory for HuggingFace download cache. If</span>
+<span class="sd">                ``None``, uses the default ``~/.cache/huggingface``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">device</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">device</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Using device: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">load_weights</span><span class="p">:</span>
+            <span class="n">weights_path</span> <span class="o">=</span> <span class="n">get_local_or_hf</span><span class="p">(</span>
+                <span class="n">filename</span><span class="o">=</span><span class="n">model_weights</span><span class="p">,</span>
+                <span class="n">repo_id</span><span class="o">=</span><span class="n">REPO_ID</span><span class="p">,</span>
+                <span class="n">descriptor</span><span class="o">=</span><span class="s2">&quot;Aframe model weights&quot;</span><span class="p">,</span>
+                <span class="n">revision</span><span class="o">=</span><span class="n">revision</span><span class="p">,</span>
+                <span class="n">cache_dir</span><span class="o">=</span><span class="n">cache_dir</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">jit</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">weights_path</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+
+        <span class="n">config</span> <span class="o">=</span> <span class="n">get_local_or_hf</span><span class="p">(</span>
+            <span class="n">filename</span><span class="o">=</span><span class="n">config</span><span class="p">,</span>
+            <span class="n">repo_id</span><span class="o">=</span><span class="n">REPO_ID</span><span class="p">,</span>
+            <span class="n">descriptor</span><span class="o">=</span><span class="s2">&quot;Aframe model config&quot;</span><span class="p">,</span>
+            <span class="n">revision</span><span class="o">=</span><span class="n">revision</span><span class="p">,</span>
+            <span class="n">cache_dir</span><span class="o">=</span><span class="n">cache_dir</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">parser</span> <span class="o">=</span> <span class="n">ArgumentParser</span><span class="p">()</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">add_class_arguments</span><span class="p">(</span><span class="n">AframeConfig</span><span class="p">)</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_path</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="nb">vars</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">configure_preprocessing</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">online_offline_stride</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inference_sampling_rate</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">offline_sampling_rate</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">configure_preprocessing</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">whitener</span> <span class="o">=</span> <span class="n">BatchWhitener</span><span class="p">(</span>
+            <span class="n">kernel_length</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kernel_length</span><span class="p">,</span>
+            <span class="n">sample_rate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_rate</span><span class="p">,</span>
+            <span class="n">inference_sampling_rate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">inference_sampling_rate</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span>
+            <span class="n">fduration</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fduration</span><span class="p">,</span>
+            <span class="n">fftlength</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fftlength</span><span class="p">,</span>
+            <span class="n">highpass</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">highpass</span><span class="p">,</span>
+            <span class="n">lowpass</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">lowpass</span><span class="p">,</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">snapshotter</span> <span class="o">=</span> <span class="n">BackgroundSnapshotter</span><span class="p">(</span>
+            <span class="n">psd_length</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">psd_length</span><span class="p">,</span>
+            <span class="n">kernel_length</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kernel_length</span><span class="p">,</span>
+            <span class="n">fduration</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fduration</span><span class="p">,</span>
+            <span class="n">sample_rate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_rate</span><span class="p">,</span>
+            <span class="n">inference_sampling_rate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">inference_sampling_rate</span><span class="p">,</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">time_offset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Estimate the time offset between the peak of the integrated</span>
+<span class="sd">        outputs and the merger time of the signal</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">time_offset</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="c1"># end of the first kernel in batch</span>
+            <span class="mi">1</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">inference_sampling_rate</span>
+            <span class="c1"># account for whitening padding</span>
+            <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">fduration</span> <span class="o">/</span> <span class="mi">2</span>
+            <span class="c1"># distance coalescence time lies away from right edge</span>
+            <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">aframe_right_pad</span>
+            <span class="c1"># account for time to build peak</span>
+            <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">integration_window_length</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">time_offset</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">minimum_data_size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The minimum length of data, in samples, required</span>
+<span class="sd">        for the model to run with its current configuration</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">fsize</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fduration</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_rate</span><span class="p">)</span>
+        <span class="n">psd_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">psd_length</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_rate</span><span class="p">)</span>
+        <span class="n">total_size</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">psd_size</span>
+            <span class="o">+</span> <span class="n">fsize</span>
+            <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">whitener</span><span class="o">.</span><span class="n">kernel_size</span>
+            <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">whitener</span><span class="o">.</span><span class="n">stride_size</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">total_size</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">data</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">t0</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Run the aframe model over the data</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;model&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s2">&quot;Aframe model weights were not loaded. &quot;</span>
+                <span class="s2">&quot;Re-initialize with load_weights=True.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">minimum_data_size</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Data size </span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> is less than the minimum &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;size of </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">minimum_data_size</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">step_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">whitener</span><span class="o">.</span><span class="n">stride_size</span><span class="p">)</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
+            <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">snapshotter</span><span class="o">.</span><span class="n">state_size</span><span class="p">),</span> <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Ensure data is on the correct device</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+
+        <span class="c1"># Iterate through the data, making predictions</span>
+        <span class="n">ys</span><span class="p">,</span> <span class="n">batches</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">start</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">step_size</span><span class="p">,</span> <span class="n">step_size</span><span class="p">):</span>
+                <span class="n">stop</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="n">step_size</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">start</span><span class="p">:</span><span class="n">stop</span><span class="p">]</span>
+
+                <span class="c1"># Forward through snapshotter and whitener</span>
+                <span class="n">x</span><span class="p">,</span> <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">snapshotter</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
+                <span class="n">batch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">whitener</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+                <span class="c1"># Run model inference</span>
+                <span class="n">y_hat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()[:,</span> <span class="mi">0</span><span class="p">]</span>
+                <span class="n">ys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">y_hat</span><span class="p">)</span>
+                <span class="n">batches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">batch</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">())</span>
+
+        <span class="n">ys</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">ys</span><span class="p">)</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+        <span class="n">batches</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">batches</span><span class="p">)</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+
+        <span class="n">tf</span> <span class="o">=</span> <span class="n">t0</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">ys</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">inference_sampling_rate</span>
+        <span class="n">times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">t0</span><span class="p">,</span> <span class="n">tf</span><span class="p">,</span> <span class="mi">1</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">inference_sampling_rate</span><span class="p">)</span>
+
+        <span class="n">online_window_size</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">integration_window_length</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">inference_sampling_rate</span><span class="p">)</span>
+            <span class="o">+</span> <span class="mi">1</span>
+        <span class="p">)</span>
+        <span class="n">online_window</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">online_window_size</span><span class="p">)</span> <span class="o">/</span> <span class="n">online_window_size</span>
+        <span class="n">timing_integrated</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">ys</span><span class="p">,</span> <span class="n">online_window</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;full&quot;</span><span class="p">)</span>
+        <span class="n">timing_integrated</span> <span class="o">=</span> <span class="n">timing_integrated</span><span class="p">[:</span> <span class="o">-</span><span class="n">online_window_size</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">offline_window_size</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">integration_window_length</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">offline_sampling_rate</span><span class="p">)</span>
+            <span class="o">+</span> <span class="mi">1</span>
+        <span class="p">)</span>
+        <span class="n">offline_window</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">offline_window_size</span><span class="p">)</span> <span class="o">/</span> <span class="n">offline_window_size</span>
+        <span class="n">signif_integrated</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span>
+            <span class="n">ys</span><span class="p">[::</span> <span class="bp">self</span><span class="o">.</span><span class="n">online_offline_stride</span><span class="p">],</span> <span class="n">offline_window</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;full&quot;</span>
+        <span class="p">)</span>
+        <span class="n">signif_integrated</span> <span class="o">=</span> <span class="n">signif_integrated</span><span class="p">[:</span> <span class="o">-</span><span class="n">offline_window_size</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">times</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">timing_integrated</span><span class="p">,</span> <span class="n">signif_integrated</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, ML4GW.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

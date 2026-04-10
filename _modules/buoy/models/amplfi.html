@@ -1,0 +1,328 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>buoy.models.amplfi &mdash; buoy 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            buoy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usage.html">Usage</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">buoy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">buoy.models.amplfi</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for buoy.models.amplfi</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">jsonargparse</span><span class="w"> </span><span class="kn">import</span> <span class="n">ArgumentParser</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ml4gw.transforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">ChannelWiseScaler</span><span class="p">,</span> <span class="n">SpectralDensity</span><span class="p">,</span> <span class="n">Whiten</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">buoy.models.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BuoyModel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">buoy.utils.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_local_or_hf</span><span class="p">,</span> <span class="n">slice_amplfi_data</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">buoy.utils.pe</span><span class="w"> </span><span class="kn">import</span> <span class="n">postprocess_samples</span><span class="p">,</span> <span class="n">run_amplfi</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">amplfi.train.architectures.flows</span><span class="w"> </span><span class="kn">import</span> <span class="n">FlowArchitecture</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">amplfi.train.prior</span><span class="w"> </span><span class="kn">import</span> <span class="n">AmplfiPrior</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">amplfi.utils.result</span><span class="w"> </span><span class="kn">import</span> <span class="n">AmplfiResult</span>
+
+<span class="n">REPO_ID</span> <span class="o">=</span> <span class="s2">&quot;ML4GW/amplfi&quot;</span>
+
+
+<div class="viewcode-block" id="AmplfiConfig">
+<a class="viewcode-back" href="../../../buoy.models.html#buoy.AmplfiConfig">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">AmplfiConfig</span><span class="p">:</span>
+    <span class="n">architecture</span><span class="p">:</span> <span class="s2">&quot;FlowArchitecture&quot;</span>
+    <span class="n">parameter_sampler</span><span class="p">:</span> <span class="s2">&quot;AmplfiPrior&quot;</span>
+    <span class="n">sample_rate</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">kernel_length</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">inference_params</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="n">event_position</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">psd_length</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">fduration</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">fftlength</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">highpass</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">lowpass</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="Amplfi">
+<a class="viewcode-back" href="../../../buoy.models.html#buoy.Amplfi">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Amplfi</span><span class="p">(</span><span class="n">AmplfiConfig</span><span class="p">,</span> <span class="n">BuoyModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    AMPLFI normalizing-flow model for rapid gravitational wave parameter</span>
+<span class="sd">    estimation.</span>
+
+<span class="sd">    Wraps a trained Lightning checkpoint and its associated preprocessing</span>
+<span class="sd">    pipeline. Config attributes are always loaded; the flow weights are</span>
+<span class="sd">    only loaded when ``load_weights=True``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">model_weights</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">=</span> <span class="s2">&quot;amplfi-hlv.ckpt&quot;</span><span class="p">,</span>
+        <span class="n">config</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">=</span> <span class="s2">&quot;amplfi-hlv-config.yaml&quot;</span><span class="p">,</span>
+        <span class="n">device</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">revision</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">load_weights</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">cache_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            model_weights:</span>
+<span class="sd">                Path to Lightning checkpoint (`.ckpt`) or filename in the</span>
+<span class="sd">                ``ML4GW/amplfi`` HuggingFace repository.</span>
+<span class="sd">            config:</span>
+<span class="sd">                Path to YAML config or filename in the ``ML4GW/amplfi``</span>
+<span class="sd">                HuggingFace repository.</span>
+<span class="sd">            device:</span>
+<span class="sd">                Device to run inference on (``&quot;cpu&quot;`` or ``&quot;cuda&quot;``).</span>
+<span class="sd">                If ``None``, uses CUDA when available, otherwise CPU.</span>
+<span class="sd">            revision:</span>
+<span class="sd">                HuggingFace repository revision (branch, tag, or commit</span>
+<span class="sd">                hash). If ``None``, uses the default branch.</span>
+<span class="sd">            load_weights:</span>
+<span class="sd">                If ``True``, download and load the flow weights. Set to</span>
+<span class="sd">                ``False`` to load only the config (e.g. to inspect</span>
+<span class="sd">                hyperparameters without allocating GPU memory).</span>
+<span class="sd">            cache_dir:</span>
+<span class="sd">                Local directory for HuggingFace download cache. If</span>
+<span class="sd">                ``None``, uses the default ``~/.cache/huggingface``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">device</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">device</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Using device: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">config</span> <span class="o">=</span> <span class="n">get_local_or_hf</span><span class="p">(</span>
+            <span class="n">filename</span><span class="o">=</span><span class="n">config</span><span class="p">,</span>
+            <span class="n">repo_id</span><span class="o">=</span><span class="n">REPO_ID</span><span class="p">,</span>
+            <span class="n">descriptor</span><span class="o">=</span><span class="s2">&quot;AMPLFI model config&quot;</span><span class="p">,</span>
+            <span class="n">revision</span><span class="o">=</span><span class="n">revision</span><span class="p">,</span>
+            <span class="n">cache_dir</span><span class="o">=</span><span class="n">cache_dir</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">parser</span> <span class="o">=</span> <span class="n">ArgumentParser</span><span class="p">()</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">add_class_arguments</span><span class="p">(</span>
+            <span class="n">AmplfiConfig</span><span class="p">,</span> <span class="n">fail_untyped</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sub_configs</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">link_arguments</span><span class="p">(</span>
+            <span class="s2">&quot;inference_params&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;architecture.init_args.num_params&quot;</span><span class="p">,</span>
+            <span class="n">compute_fn</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span>
+            <span class="n">apply_on</span><span class="o">=</span><span class="s2">&quot;parse&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_path</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">instantiate_classes</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="nb">vars</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">load_weights</span><span class="p">:</span>
+            <span class="n">weights_path</span> <span class="o">=</span> <span class="n">get_local_or_hf</span><span class="p">(</span>
+                <span class="n">filename</span><span class="o">=</span><span class="n">model_weights</span><span class="p">,</span>
+                <span class="n">repo_id</span><span class="o">=</span><span class="n">REPO_ID</span><span class="p">,</span>
+                <span class="n">descriptor</span><span class="o">=</span><span class="s2">&quot;AMPLFI model weights&quot;</span><span class="p">,</span>
+                <span class="n">revision</span><span class="o">=</span><span class="n">revision</span><span class="p">,</span>
+                <span class="n">cache_dir</span><span class="o">=</span><span class="n">cache_dir</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">model</span><span class="p">,</span> <span class="n">scaler</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_model</span><span class="p">(</span>
+                <span class="n">args</span><span class="o">.</span><span class="n">architecture</span><span class="p">,</span>
+                <span class="n">weights_path</span><span class="p">,</span>
+                <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">inference_params</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">scaler</span> <span class="o">=</span> <span class="n">scaler</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">configure_preprocessing</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_model</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">model</span><span class="p">:</span> <span class="s2">&quot;FlowArchitecture&quot;</span><span class="p">,</span>
+        <span class="n">model_weights</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">num_params</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="n">checkpoint</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
+            <span class="n">model_weights</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">,</span> <span class="n">weights_only</span><span class="o">=</span><span class="kc">False</span>
+        <span class="p">)</span>
+        <span class="n">arch_weights</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">k</span><span class="p">[</span><span class="mi">6</span><span class="p">:]:</span> <span class="n">v</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">checkpoint</span><span class="p">[</span><span class="s2">&quot;state_dict&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;model.&quot;</span><span class="p">)</span>
+        <span class="p">}</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">arch_weights</span><span class="p">)</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+        <span class="n">scaler_weights</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">k</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="s2">&quot;scaler.&quot;</span><span class="p">)</span> <span class="p">:]:</span> <span class="n">v</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">checkpoint</span><span class="p">[</span><span class="s2">&quot;state_dict&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;scaler.&quot;</span><span class="p">)</span>
+        <span class="p">}</span>
+        <span class="n">scaler</span> <span class="o">=</span> <span class="n">ChannelWiseScaler</span><span class="p">(</span><span class="n">num_params</span><span class="p">)</span>
+        <span class="n">scaler</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">scaler_weights</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">model</span><span class="p">,</span> <span class="n">scaler</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">configure_preprocessing</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spectral_density</span> <span class="o">=</span> <span class="n">SpectralDensity</span><span class="p">(</span>
+            <span class="n">sample_rate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_rate</span><span class="p">,</span>
+            <span class="n">fftlength</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fftlength</span><span class="p">,</span>
+            <span class="n">average</span><span class="o">=</span><span class="s2">&quot;median&quot;</span><span class="p">,</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">whitener</span> <span class="o">=</span> <span class="n">Whiten</span><span class="p">(</span>
+            <span class="n">fduration</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fduration</span><span class="p">,</span>
+            <span class="n">sample_rate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_rate</span><span class="p">,</span>
+            <span class="n">highpass</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">highpass</span><span class="p">,</span>
+            <span class="n">lowpass</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">lowpass</span><span class="p">,</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">minimum_data_size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Minimum data size required for the model to run.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kernel_length</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">psd_length</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">fduration</span><span class="p">)</span>
+            <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_rate</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">data</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">t0</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">tc</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">samples_per_event</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;AmplfiResult&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;model&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s2">&quot;AMPLFI model weights were not loaded. &quot;</span>
+                <span class="s2">&quot;Re-initialize with load_weights=True.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">minimum_data_size</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Data size </span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> is less than the minimum &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;size of </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">minimum_data_size</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">psd_data</span><span class="p">,</span> <span class="n">window</span> <span class="o">=</span> <span class="n">slice_amplfi_data</span><span class="p">(</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+            <span class="n">sample_rate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_rate</span><span class="p">,</span>
+            <span class="n">t0</span><span class="o">=</span><span class="n">t0</span><span class="p">,</span>
+            <span class="n">tc</span><span class="o">=</span><span class="n">tc</span><span class="p">,</span>
+            <span class="n">kernel_length</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kernel_length</span><span class="p">,</span>
+            <span class="n">event_position</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">event_position</span><span class="p">,</span>
+            <span class="n">psd_length</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">psd_length</span><span class="p">,</span>
+            <span class="n">fduration</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fduration</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">samples</span> <span class="o">=</span> <span class="n">run_amplfi</span><span class="p">(</span>
+            <span class="n">amplfi_strain</span><span class="o">=</span><span class="n">window</span><span class="p">,</span>
+            <span class="n">amplfi_psd_strain</span><span class="o">=</span><span class="n">psd_data</span><span class="p">,</span>
+            <span class="n">samples_per_event</span><span class="o">=</span><span class="n">samples_per_event</span><span class="p">,</span>
+            <span class="n">spectral_density</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">spectral_density</span><span class="p">,</span>
+            <span class="n">amplfi_whitener</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">whitener</span><span class="p">,</span>
+            <span class="n">amplfi</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span>
+            <span class="n">std_scaler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">scaler</span><span class="p">,</span>
+            <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">samples</span> <span class="o">=</span> <span class="n">samples</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">postprocess_samples</span><span class="p">(</span>
+            <span class="n">samples</span><span class="o">=</span><span class="n">samples</span><span class="p">,</span>
+            <span class="n">event_time</span><span class="o">=</span><span class="n">tc</span><span class="p">,</span>
+            <span class="n">inference_params</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">inference_params</span><span class="p">,</span>
+            <span class="n">parameter_sampler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parameter_sampler</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, ML4GW.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

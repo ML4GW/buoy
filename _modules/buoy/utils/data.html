@@ -1,0 +1,345 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>buoy.utils.data &mdash; buoy 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            buoy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usage.html">Usage</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">buoy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">buoy.utils.data</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for buoy.utils.data</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">gwosc</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">gwosc.datasets</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">h5py</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">gwpy.timeseries</span><span class="w"> </span><span class="kn">import</span> <span class="n">TimeSeries</span><span class="p">,</span> <span class="n">TimeSeriesDict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">huggingface_hub</span><span class="w"> </span><span class="kn">import</span> <span class="n">hf_hub_download</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">huggingface_hub.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">EntryNotFoundError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ligo.gracedb.rest</span><span class="w"> </span><span class="kn">import</span> <span class="n">GraceDb</span>
+
+<span class="n">STRAIN_CHANNELS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;H1&quot;</span><span class="p">:</span> <span class="s2">&quot;H1:GDS-CALIB_STRAIN_CLEAN&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;L1&quot;</span><span class="p">:</span> <span class="s2">&quot;L1:GDS-CALIB_STRAIN_CLEAN&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;V1&quot;</span><span class="p">:</span> <span class="s2">&quot;V1:Hrec_hoft_16384Hz&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="get_local_or_hf">
+<a class="viewcode-back" href="../../../buoy.utils.html#buoy.utils.data.get_local_or_hf">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_local_or_hf</span><span class="p">(</span>
+    <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="n">repo_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">descriptor</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">revision</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">cache_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Determine whether a given file exists locally or in a HuggingFace</span>
+<span class="sd">    repository. If the file exists locally, return the filename.</span>
+<span class="sd">    If it does not exist locally, attempt to download it from the</span>
+<span class="sd">    HuggingFace repository. If the file is not found in either</span>
+<span class="sd">    location, raise a ValueError.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        filename: The name of the file to load.</span>
+<span class="sd">        repo_id: The HuggingFace repository ID.</span>
+<span class="sd">        descriptor: A description of the file for logging.</span>
+<span class="sd">        revision:</span>
+<span class="sd">            The HuggingFace repository revision (branch, tag, or commit</span>
+<span class="sd">            hash) to download from. If None, uses the default branch.</span>
+<span class="sd">        cache_dir:</span>
+<span class="sd">            Local directory to use as the HuggingFace download cache.</span>
+<span class="sd">            If None, uses the default HuggingFace cache location.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The path to the file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">Path</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loading </span><span class="si">{</span><span class="n">descriptor</span><span class="si">}</span><span class="s2"> from </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Downloading </span><span class="si">{</span><span class="n">descriptor</span><span class="si">}</span><span class="s2"> from HuggingFace &quot;</span>
+                <span class="s2">&quot;or loading from cache&quot;</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">hf_hub_download</span><span class="p">(</span>
+                <span class="n">repo_id</span><span class="o">=</span><span class="n">repo_id</span><span class="p">,</span>
+                <span class="n">filename</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">filename</span><span class="p">),</span>
+                <span class="n">revision</span><span class="o">=</span><span class="n">revision</span><span class="p">,</span>
+                <span class="n">cache_dir</span><span class="o">=</span><span class="n">cache_dir</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="n">EntryNotFoundError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">descriptor</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2"> not found locally or in &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;HuggingFace repository </span><span class="si">{</span><span class="n">repo_id</span><span class="si">}</span><span class="s2">. Please check the name.&quot;</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
+
+
+
+<div class="viewcode-block" id="slice_amplfi_data">
+<a class="viewcode-back" href="../../../buoy.utils.html#buoy.utils.data.slice_amplfi_data">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">slice_amplfi_data</span><span class="p">(</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">sample_rate</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">t0</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">tc</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">kernel_length</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">event_position</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">psd_length</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">fduration</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Slice a strain tensor into the PSD background and inference window</span>
+<span class="sd">    required by AMPLFI.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        data: Strain tensor of shape ``(1, num_channels, num_samples)``.</span>
+<span class="sd">        sample_rate: Sampling rate in Hz.</span>
+<span class="sd">        t0: GPS start time of ``data``.</span>
+<span class="sd">        tc: Coalescence time (GPS).</span>
+<span class="sd">        kernel_length: Length of the inference kernel in seconds.</span>
+<span class="sd">        event_position:</span>
+<span class="sd">            Position of the coalescence within the kernel in seconds</span>
+<span class="sd">            (range ``[0, kernel_length]``).</span>
+<span class="sd">        psd_length: Length of the PSD background segment in seconds.</span>
+<span class="sd">        fduration: Whitening filter duration in seconds.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A ``(psd_data, window)`` tuple where ``psd_data`` has shape</span>
+<span class="sd">        ``(num_channels, psd_length * sample_rate)`` and ``window`` has</span>
+<span class="sd">        shape ``(num_channels, (kernel_length + fduration) * sample_rate)``.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If the requested window extends outside the bounds of</span>
+<span class="sd">            ``data``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">window_start</span> <span class="o">=</span> <span class="n">tc</span> <span class="o">-</span> <span class="n">t0</span> <span class="o">-</span> <span class="n">event_position</span> <span class="o">-</span> <span class="n">fduration</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="n">window_start</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">sample_rate</span> <span class="o">*</span> <span class="n">window_start</span><span class="p">)</span>
+    <span class="n">window_length</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">kernel_length</span> <span class="o">+</span> <span class="n">fduration</span><span class="p">)</span> <span class="o">*</span> <span class="n">sample_rate</span><span class="p">)</span>
+    <span class="n">window_end</span> <span class="o">=</span> <span class="n">window_start</span> <span class="o">+</span> <span class="n">window_length</span>
+
+    <span class="k">if</span> <span class="n">window_start</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;The start of the AMPLFI window before the start of the data. &quot;</span>
+            <span class="s2">&quot;This may be due to the event time being too close to &quot;</span>
+            <span class="s2">&quot;the start of the data.&quot;</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">window_end</span> <span class="o">&gt;</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;The end of the AMPLFI window is after the end of the data. &quot;</span>
+            <span class="s2">&quot;This may be due to the event time being too close to &quot;</span>
+            <span class="s2">&quot;the end of the data.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="n">psd_start</span> <span class="o">=</span> <span class="n">window_start</span> <span class="o">-</span> <span class="nb">int</span><span class="p">(</span><span class="n">psd_length</span> <span class="o">*</span> <span class="n">sample_rate</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">psd_start</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;The start of the PSD window before the start of the data. &quot;</span>
+            <span class="s2">&quot;This may be due to the event time being too close to &quot;</span>
+            <span class="s2">&quot;the start of the data.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="n">psd_data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="n">psd_start</span><span class="p">:</span><span class="n">window_start</span><span class="p">]</span>
+    <span class="n">window</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="n">window_start</span><span class="p">:</span><span class="n">window_end</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">psd_data</span><span class="p">,</span> <span class="n">window</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">get_data</span><span class="p">(</span>
+    <span class="n">event</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">sample_rate</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">psd_length</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">datadir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="n">ifos</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+    <span class="n">event</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;GW&quot;</span><span class="p">):</span>
+        <span class="n">event_time</span> <span class="o">=</span> <span class="n">gwosc</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">event_gps</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+        <span class="n">ifos</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">gwosc</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">event_detectors</span><span class="p">(</span><span class="n">event</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="n">event</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;G&quot;</span><span class="p">):</span>
+        <span class="n">client</span> <span class="o">=</span> <span class="n">GraceDb</span><span class="p">()</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">event</span><span class="p">(</span><span class="n">event</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+        <span class="n">event_time</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;gpstime&quot;</span><span class="p">]</span>
+        <span class="n">ifos</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;instruments&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">event</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;S&quot;</span><span class="p">):</span>
+        <span class="n">client</span> <span class="o">=</span> <span class="n">GraceDb</span><span class="p">()</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">superevent</span><span class="p">(</span><span class="n">event</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+        <span class="n">event_time</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;preferred_event_data&quot;</span><span class="p">][</span><span class="s2">&quot;gpstime&quot;</span><span class="p">]</span>
+        <span class="n">ifos</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;preferred_event_data&quot;</span><span class="p">][</span><span class="s2">&quot;instruments&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">event_time</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Event </span><span class="si">{</span><span class="n">event</span><span class="si">}</span><span class="s2"> is not a valid event name. &quot;</span>
+                <span class="s2">&quot;Should be a valid GPS time, a known gravitational wave &quot;</span>
+                <span class="s2">&quot;event name (e.g. GW123456), or a GraceDB event or superevent &quot;</span>
+                <span class="s2">&quot;(e.g. G123456 or S123456).&quot;</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+        <span class="n">ifos</span> <span class="o">=</span> <span class="n">ifos</span> <span class="ow">or</span> <span class="p">[</span><span class="s2">&quot;H1&quot;</span><span class="p">,</span> <span class="s2">&quot;L1&quot;</span><span class="p">,</span> <span class="s2">&quot;V1&quot;</span><span class="p">]</span>
+
+    <span class="c1"># Make sure things start at an integer time for consistency.</span>
+    <span class="c1"># Take data from psd_length * (-1.5, 0.5) around the event</span>
+    <span class="c1"># time to make sure there&#39;s enough for analysis. This isn&#39;t</span>
+    <span class="c1"># totally robust, but should be good for most use cases.</span>
+    <span class="n">offset</span> <span class="o">=</span> <span class="n">event_time</span> <span class="o">%</span> <span class="mi">1</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">event_time</span> <span class="o">-</span> <span class="mf">1.5</span> <span class="o">*</span> <span class="n">psd_length</span> <span class="o">-</span> <span class="n">offset</span>
+    <span class="n">end</span> <span class="o">=</span> <span class="n">event_time</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">psd_length</span> <span class="o">-</span> <span class="n">offset</span>
+
+    <span class="n">datafile</span> <span class="o">=</span> <span class="n">datadir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">event</span><span class="si">}</span><span class="s2">.hdf5&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">datafile</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s2">&quot;Fetching data from between GPS times &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">start</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">end</span><span class="si">}</span><span class="s2"> for </span><span class="si">{</span><span class="n">ifos</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+        <span class="n">ts_dict</span> <span class="o">=</span> <span class="n">TimeSeriesDict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">ifo</span> <span class="ow">in</span> <span class="n">ifos</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">start</span> <span class="o">&lt;</span> <span class="mi">1389456018</span><span class="p">:</span>
+                <span class="n">ts_dict</span><span class="p">[</span><span class="n">ifo</span><span class="p">]</span> <span class="o">=</span> <span class="n">TimeSeries</span><span class="o">.</span><span class="n">fetch_open_data</span><span class="p">(</span><span class="n">ifo</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ts_dict</span><span class="p">[</span><span class="n">ifo</span><span class="p">]</span> <span class="o">=</span> <span class="n">TimeSeries</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">STRAIN_CHANNELS</span><span class="p">[</span><span class="n">ifo</span><span class="p">],</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+
+            <span class="n">span</span> <span class="o">=</span> <span class="n">ts_dict</span><span class="p">[</span><span class="n">ifo</span><span class="p">]</span><span class="o">.</span><span class="n">span</span>
+            <span class="k">if</span> <span class="n">span</span><span class="o">.</span><span class="n">end</span> <span class="o">-</span> <span class="n">span</span><span class="o">.</span><span class="n">start</span> <span class="o">&lt;</span> <span class="mi">128</span><span class="p">:</span>
+                <span class="n">ts_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">ifo</span><span class="p">)</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Detector </span><span class="si">{</span><span class="n">ifo</span><span class="si">}</span><span class="s2"> did not have sufficient data surrounding &quot;</span>
+                    <span class="s2">&quot;the event time, removing it from the dataset&quot;</span><span class="p">,</span>
+                    <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                <span class="p">)</span>
+
+        <span class="n">ifos</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ts_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Fetched data for detectors </span><span class="si">{</span><span class="n">ifos</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ifos</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[[</span><span class="s2">&quot;H1&quot;</span><span class="p">,</span> <span class="s2">&quot;L1&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;H1&quot;</span><span class="p">,</span> <span class="s2">&quot;L1&quot;</span><span class="p">,</span> <span class="s2">&quot;V1&quot;</span><span class="p">]]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Event </span><span class="si">{</span><span class="n">event</span><span class="si">}</span><span class="s2"> does not have the required detectors. &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Expected [&#39;H1&#39;, &#39;L1&#39;] or [&#39;H1&#39;, &#39;L1&#39;, &#39;V1&#39;], got </span><span class="si">{</span><span class="n">ifos</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+        <span class="n">ts_dict</span> <span class="o">=</span> <span class="n">ts_dict</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="n">sample_rate</span><span class="p">)</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saving data to file </span><span class="si">{</span><span class="n">datafile</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">datafile</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;tc&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">event_time</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;t0&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">start</span>
+            <span class="k">for</span> <span class="n">ifo</span> <span class="ow">in</span> <span class="n">ifos</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="n">ifo</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">ts_dict</span><span class="p">[</span><span class="n">ifo</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
+        <span class="n">t0</span> <span class="o">=</span> <span class="n">start</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">ts_dict</span><span class="p">[</span><span class="n">ifo</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">ifo</span> <span class="ow">in</span> <span class="n">ifos</span><span class="p">])[</span><span class="kc">None</span><span class="p">]</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loading data from file for event </span><span class="si">{</span><span class="n">event</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">datafile</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">ifos</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">f</span><span class="p">[</span><span class="n">ifo</span><span class="p">][:]</span> <span class="k">for</span> <span class="n">ifo</span> <span class="ow">in</span> <span class="n">ifos</span><span class="p">])[</span><span class="kc">None</span><span class="p">]</span>
+            <span class="n">event_time</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;tc&quot;</span><span class="p">]</span>
+            <span class="n">t0</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;t0&quot;</span><span class="p">]</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loaded data for detectors </span><span class="si">{</span><span class="n">ifos</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="n">ifos</span><span class="p">,</span> <span class="n">t0</span><span class="p">,</span> <span class="n">event_time</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, ML4GW.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

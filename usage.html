@@ -1,0 +1,352 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Usage &mdash; buoy 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API Reference" href="api.html" />
+    <link rel="prev" title="Installation" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            buoy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#supported-event-types">Supported event types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cli">CLI</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#single-event">Single event</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#multiple-events">Multiple events</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gps-time">GPS time</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config-file">Config file</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#python-api">Python API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#output-structure">Output structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cli-reference">CLI reference</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">buoy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Usage</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/usage.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="usage">
+<h1>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h1>
+<section id="supported-event-types">
+<h2>Supported event types<a class="headerlink" href="#supported-event-types" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Format</p></th>
+<th class="head"><p>Example</p></th>
+<th class="head"><p>Source</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>GWTC catalog event</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GW150914</span></code></p></td>
+<td><p><a class="reference external" href="https://gw-openscience.org">GWOSC</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>GraceDB event</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">G363842</span></code></p></td>
+<td><p><a class="reference external" href="https://gracedb.ligo.org">GraceDB</a> (requires LIGO credentials)</p></td>
+</tr>
+<tr class="row-even"><td><p>GraceDB superevent</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">S200213t</span></code></p></td>
+<td><p><a class="reference external" href="https://gracedb.ligo.org">GraceDB</a> (requires LIGO credentials)</p></td>
+</tr>
+<tr class="row-odd"><td><p>GPS time</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1187008882.4</span></code></p></td>
+<td><p>User-supplied</p></td>
+</tr>
+</tbody>
+</table>
+<p>When using a GPS time, buoy defaults to fetching data for H1, L1, and V1.
+Use <code class="docutils literal notranslate"><span class="pre">--ifos</span></code> to restrict the detector set.</p>
+</section>
+<section id="cli">
+<h2>CLI<a class="headerlink" href="#cli" title="Link to this heading"></a></h2>
+<section id="single-event">
+<h3>Single event<a class="headerlink" href="#single-event" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>buoy<span class="w"> </span>--events<span class="w"> </span>GW150914<span class="w"> </span>--outdir<span class="w"> </span>./results
+</pre></div>
+</div>
+</section>
+<section id="multiple-events">
+<h3>Multiple events<a class="headerlink" href="#multiple-events" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>buoy<span class="w"> </span>--events<span class="w"> </span><span class="s1">&#39;[&quot;GW190521&quot;, &quot;GW190828_063405&quot;, &quot;S200213t&quot;]&#39;</span><span class="w"> </span>--outdir<span class="w"> </span>./results
+</pre></div>
+</div>
+</section>
+<section id="gps-time">
+<h3>GPS time<a class="headerlink" href="#gps-time" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>buoy<span class="w"> </span>--events<span class="w"> </span><span class="m">1187008882</span>.4<span class="w"> </span>--outdir<span class="w"> </span>./results<span class="w"> </span>--ifos<span class="w"> </span><span class="s1">&#39;[&quot;H1&quot;, &quot;L1&quot;]&#39;</span>
+</pre></div>
+</div>
+</section>
+<section id="config-file">
+<h3>Config file<a class="headerlink" href="#config-file" title="Link to this heading"></a></h3>
+<p>All arguments can be stored in a YAML config file:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># config.yaml</span>
+<span class="nt">events</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">GW190521</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">GW190814</span>
+<span class="nt">outdir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./results</span>
+<span class="nt">samples_per_event</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10000</span>
+<span class="nt">device</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cuda</span>
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>buoy<span class="w"> </span>--config<span class="w"> </span>config.yaml
+</pre></div>
+</div>
+</section>
+</section>
+<section id="python-api">
+<h2>Python API<a class="headerlink" href="#python-api" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">buoy</span><span class="w"> </span><span class="kn">import</span> <span class="n">main</span>
+
+<span class="n">main</span><span class="p">(</span><span class="n">events</span><span class="o">=</span><span class="s2">&quot;GW150914&quot;</span><span class="p">,</span> <span class="n">outdir</span><span class="o">=</span><span class="s2">&quot;./results&quot;</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cuda&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Models can also be instantiated directly for custom workflows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">buoy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Aframe</span><span class="p">,</span> <span class="n">Amplfi</span>
+
+<span class="n">aframe</span> <span class="o">=</span> <span class="n">Aframe</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="s2">&quot;cuda&quot;</span><span class="p">)</span>
+<span class="n">amplfi</span> <span class="o">=</span> <span class="n">Amplfi</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="s2">&quot;path/to/config.yaml&quot;</span><span class="p">,</span> <span class="n">load_weights</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">aframe</span><span class="o">.</span><span class="n">sample_rate</span><span class="p">,</span> <span class="n">amplfi</span><span class="o">.</span><span class="n">kernel_length</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="output-structure">
+<h2>Output structure<a class="headerlink" href="#output-structure" title="Link to this heading"></a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&lt;outdir&gt;/
+└── &lt;event&gt;/
+    ├── data/
+    │   ├── &lt;event&gt;.hdf5            # Raw strain data
+    │   ├── aframe_outputs.hdf5     # Aframe times, detection statistics
+    │   ├── posterior_samples.dat   # AMPLFI posterior samples
+    │   ├── whitened_data.npy       # Whitened strain used for plotting
+    │   └── amplfi_&lt;HL|HLV&gt;.fits   # Skymap in FITS format
+    └── plots/
+        ├── aframe_response.png     # Detection statistic vs. time
+        ├── H1_qtransform.png       # Q-transform for H1
+        ├── L1_qtransform.png       # Q-transform for L1
+        ├── skymap_&lt;HL|HLV&gt;.png     # Mollweide sky localization map
+        └── corner_plot_&lt;HL|HLV&gt;.png  # Corner plot of posterior samples
+</pre></div>
+</div>
+</section>
+<section id="cli-reference">
+<h2>CLI reference<a class="headerlink" href="#cli-reference" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Argument</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--events</span></code></p></td>
+<td><p><em>(required)</em></p></td>
+<td><p>Event name(s) or GPS time(s) to analyze</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--outdir</span></code></p></td>
+<td><p><em>(required)</em></p></td>
+<td><p>Directory to write results</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--samples_per_event</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">20000</span></code></p></td>
+<td><p>Number of AMPLFI posterior samples</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--nside</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">64</span></code></p></td>
+<td><p>HEALPix resolution for the skymap</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--min_samples_per_pix</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">5</span></code></p></td>
+<td><p>Minimum samples per pixel for distance ansatz</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--use_distance</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
+<td><p>Include distance in the 3D skymap</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--aframe_weights</span></code></p></td>
+<td><p>HuggingFace</p></td>
+<td><p>Path to Aframe TorchScript weights (<code class="docutils literal notranslate"><span class="pre">.pt</span></code>)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--amplfi_hl_weights</span></code></p></td>
+<td><p>HuggingFace</p></td>
+<td><p>Path to AMPLFI HL checkpoint (<code class="docutils literal notranslate"><span class="pre">.ckpt</span></code>)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--amplfi_hlv_weights</span></code></p></td>
+<td><p>HuggingFace</p></td>
+<td><p>Path to AMPLFI HLV checkpoint (<code class="docutils literal notranslate"><span class="pre">.ckpt</span></code>)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--aframe_config</span></code></p></td>
+<td><p>HuggingFace</p></td>
+<td><p>Path to Aframe model config (<code class="docutils literal notranslate"><span class="pre">.yaml</span></code>)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--amplfi_hl_config</span></code></p></td>
+<td><p>HuggingFace</p></td>
+<td><p>Path to AMPLFI HL model config (<code class="docutils literal notranslate"><span class="pre">.yaml</span></code>)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--amplfi_hlv_config</span></code></p></td>
+<td><p>HuggingFace</p></td>
+<td><p>Path to AMPLFI HLV model config (<code class="docutils literal notranslate"><span class="pre">.yaml</span></code>)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--aframe_revision</span></code></p></td>
+<td><p>default branch</p></td>
+<td><p>HuggingFace revision for Aframe weights</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--amplfi_revision</span></code></p></td>
+<td><p>default branch</p></td>
+<td><p>HuggingFace revision for AMPLFI weights</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--model_cache_dir</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">~/.cache/huggingface</span></code></p></td>
+<td><p>Local HuggingFace cache directory</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--use_true_tc_for_amplfi</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+<td><p>Use catalog/GraceDB time instead of Aframe-inferred time</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--ifos</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[&quot;H1&quot;,&quot;L1&quot;,&quot;V1&quot;]</span></code></p></td>
+<td><p>Detectors to use for GPS time events</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--device</span></code></p></td>
+<td><p>auto</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">cpu</span></code> or <code class="docutils literal notranslate"><span class="pre">cuda</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--seed</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Random seed for AMPLFI reproducibility</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--verbose</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+<td><p>Enable DEBUG-level logging</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--run_aframe</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
+<td><p>Run Aframe inference; if false, load saved outputs</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--run_amplfi</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
+<td><p>Run AMPLFI inference; if false, skip PE</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--generate_plots</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
+<td><p>Generate output plots</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--force</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+<td><p>Reprocess events even if outputs already exist</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--corner_parameters</span></code></p></td>
+<td><p>see below</p></td>
+<td><p>Parameters to include in the corner plot</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--to_html</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+<td><p>Generate an HTML summary page</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--config</span></code></p></td>
+<td><p>—</p></td>
+<td><p>Path to a YAML config file</p></td>
+</tr>
+</tbody>
+</table>
+<p>Default corner plot parameters: <code class="docutils literal notranslate"><span class="pre">chirp_mass</span></code>, <code class="docutils literal notranslate"><span class="pre">mass_ratio</span></code>, <code class="docutils literal notranslate"><span class="pre">distance</span></code>, <code class="docutils literal notranslate"><span class="pre">mass_1</span></code>, <code class="docutils literal notranslate"><span class="pre">mass_2</span></code>.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="api.html" class="btn btn-neutral float-right" title="API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, ML4GW.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

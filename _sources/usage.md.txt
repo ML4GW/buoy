@@ -53,7 +53,7 @@ buoy --config config.yaml
 ## Python API
 
 ```python
-from buoy import main
+from buoy.main import main
 
 main(events="GW150914", outdir="./results", device="cuda")
 ```

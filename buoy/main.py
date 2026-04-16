@@ -106,6 +106,7 @@ def main(
     run_amplfi: bool = True,
     generate_plots: bool = True,
     force: bool = False,
+    max_workers: int = 1,
     corner_parameters: list[str] | None = None,
 ):
     """
@@ -204,6 +205,13 @@ def main(
         force:
             If True, reprocess events even if output files already exist.
             If False, skip events whose inference outputs are all present.
+        max_workers:
+            Number of events to process concurrently. Default 1
+            (sequential). Values > 1 use a thread pool so that data
+            fetching for the next event overlaps with model inference
+            for the current one. On a single GPU, values above the
+            number of GPUs will not further improve GPU utilisation
+            but may increase memory pressure.
         corner_parameters:
             List of parameter names to include in the AMPLFI corner plot.
             Defaults to ["chirp_mass", "mass_ratio", "distance",
@@ -265,7 +273,9 @@ def main(
         )
 
     default_ifos = ifos
-    for event in events:
+
+    def _process_event(event: str) -> None:
+        log = logging.getLogger(event)
         datadir = outdir / str(event) / "data"
         plotdir = outdir / str(event) / "plots"
         datadir.mkdir(parents=True, exist_ok=True)
@@ -278,13 +288,13 @@ def main(
             aframe_done = aframe_output_file.exists()
             amplfi_done = not run_amplfi or amplfi_output_file.exists()
             if aframe_done and amplfi_done:
-                logging.info(
+                log.info(
                     f"Skipping {event}: outputs already present. "
                     "Use --force to reprocess."
                 )
-                continue
+                return
 
-        logging.info("Fetching or loading data")
+        log.info("Fetching or loading data")
         data, ifos, t0, event_time = get_data(
             event=event,
             sample_rate=aframe.sample_rate,
@@ -298,14 +308,14 @@ def main(
         amplfi_model = amplfi_hl if data.shape[1] == 2 else amplfi_hlv
 
         if run_aframe:
-            logging.info("Running Aframe")
+            log.info("Running Aframe")
             times, ys, timing_integrated, signif_integrated = aframe(
                 data[:, :2], t0
             )
             predicted_tc = (
                 times[np.argmax(timing_integrated)] + aframe.time_offset
             )
-            logging.info("Saving Aframe outputs")
+            log.info("Saving Aframe outputs")
             with h5py.File(aframe_output_file, "w") as f:
                 f.create_dataset("times", data=times)
                 f.create_dataset("ys", data=ys)
@@ -313,7 +323,7 @@ def main(
                 f.create_dataset("signif_integrated", data=signif_integrated)
                 f.attrs["predicted_tc"] = predicted_tc
         else:
-            logging.info("Loading saved Aframe outputs")
+            log.info("Loading saved Aframe outputs")
             if not aframe_output_file.exists():
                 raise FileNotFoundError(
                     f"Aframe output file {aframe_output_file} not found. "
@@ -329,7 +339,7 @@ def main(
         tc = event_time if use_true_tc_for_amplfi else predicted_tc
 
         if run_amplfi:
-            logging.info("Running AMPLFI model")
+            log.info("Running AMPLFI model")
             result = amplfi_model(
                 data=data,
                 t0=t0,
@@ -363,7 +373,7 @@ def main(
             result.save_posterior_samples(filename=amplfi_output_file)
 
         if generate_plots:
-            logging.info("Creating Q-plots")
+            log.info("Creating Q-plots")
             q_plots(
                 data=data.squeeze().cpu().numpy(),
                 t0=t0,
@@ -380,7 +390,7 @@ def main(
                     whitened_times = whitened_arr[0]
                     whitened = whitened_arr[1:]
                 else:
-                    logging.warning(
+                    log.warning(
                         "Whitened data not found, plotting only "
                         "network output. Run with run_amplfi=True "
                         "to generate whitened data."
@@ -388,7 +398,7 @@ def main(
                     whitened = None
                     whitened_times = None
 
-                logging.info("Plotting Aframe response")
+                log.info("Plotting Aframe response")
                 plot_aframe_response(
                     times=times,
                     ys=ys,
@@ -403,7 +413,7 @@ def main(
                 )
 
             if run_amplfi:
-                logging.info("Plotting AMPLFI result")
+                log.info("Plotting AMPLFI result")
                 plot_amplfi_result(
                     result=result,
                     nside=nside,
@@ -416,9 +426,24 @@ def main(
                 )
 
         if to_html:
-            logging.info("Generating HTML page")
+            log.info("Generating HTML page")
             generate_html(
                 plotdir=plotdir,
                 output_file=outdir / str(event) / "summary.html",
                 label=str(event) + " Event Summary",
             )
+
+    if max_workers == 1:
+        for event in events:
+            _process_event(event)
+    else:
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+
+        with ThreadPoolExecutor(max_workers=max_workers) as pool:
+            futures = {
+                pool.submit(_process_event, event): event for event in events
+            }
+            for future in as_completed(futures):
+                event = futures[future]
+                if exc := future.exception():
+                    logging.error(f"Event {event} failed: {exc}", exc_info=exc)

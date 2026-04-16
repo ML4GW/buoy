@@ -50,7 +50,10 @@
 <li class="toctree-l2"><a class="reference internal" href="#cli">CLI</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#single-event">Single event</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#multiple-events">Multiple events</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#all-public-events-from-an-observing-run">All public events from an observing run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#all-public-events-in-a-gps-time-window">All public events in a GPS time window</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#gps-time">GPS time</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parallel-processing">Parallel processing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#config-file">Config file</a></li>
 </ul>
 </li>
@@ -124,6 +127,7 @@ Use <code class="docutils literal notranslate"><span class="pre">--ifos</span></
 </section>
 <section id="cli">
 <h2>CLI<a class="headerlink" href="#cli" title="Link to this heading"></a></h2>
+<p>Exactly one event source must be supplied: explicit event name(s) via <code class="docutils literal notranslate"><span class="pre">--events</span></code>, an observing run via <code class="docutils literal notranslate"><span class="pre">--observing_runs</span></code>, or a GPS window via <code class="docutils literal notranslate"><span class="pre">--gps_start</span></code>/<code class="docutils literal notranslate"><span class="pre">--gps_end</span></code>.</p>
 <section id="single-event">
 <h3>Single event<a class="headerlink" href="#single-event" title="Link to this heading"></a></h3>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>buoy<span class="w"> </span>--events<span class="w"> </span>GW150914<span class="w"> </span>--outdir<span class="w"> </span>./results
@@ -136,9 +140,28 @@ Use <code class="docutils literal notranslate"><span class="pre">--ifos</span></
 </pre></div>
 </div>
 </section>
+<section id="all-public-events-from-an-observing-run">
+<h3>All public events from an observing run<a class="headerlink" href="#all-public-events-from-an-observing-run" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>buoy<span class="w"> </span>--observing_runs<span class="w"> </span><span class="s1">&#39;[&quot;O3a&quot;]&#39;</span><span class="w"> </span>--outdir<span class="w"> </span>./results
+</pre></div>
+</div>
+</section>
+<section id="all-public-events-in-a-gps-time-window">
+<h3>All public events in a GPS time window<a class="headerlink" href="#all-public-events-in-a-gps-time-window" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>buoy<span class="w"> </span>--gps_start<span class="w"> </span><span class="m">1126051217</span><span class="w"> </span>--gps_end<span class="w"> </span><span class="m">1137254417</span><span class="w"> </span>--outdir<span class="w"> </span>./results
+</pre></div>
+</div>
+</section>
 <section id="gps-time">
 <h3>GPS time<a class="headerlink" href="#gps-time" title="Link to this heading"></a></h3>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>buoy<span class="w"> </span>--events<span class="w"> </span><span class="m">1187008882</span>.4<span class="w"> </span>--outdir<span class="w"> </span>./results<span class="w"> </span>--ifos<span class="w"> </span><span class="s1">&#39;[&quot;H1&quot;, &quot;L1&quot;]&#39;</span>
+</pre></div>
+</div>
+</section>
+<section id="parallel-processing">
+<h3>Parallel processing<a class="headerlink" href="#parallel-processing" title="Link to this heading"></a></h3>
+<p>Use <code class="docutils literal notranslate"><span class="pre">--max_workers</span></code> to process multiple events concurrently. Data fetching for the next event overlaps with model inference for the current one:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>buoy<span class="w"> </span>--observing_runs<span class="w"> </span><span class="s1">&#39;[&quot;O3a&quot;]&#39;</span><span class="w"> </span>--outdir<span class="w"> </span>./results<span class="w"> </span>--max_workers<span class="w"> </span><span class="m">4</span>
 </pre></div>
 </div>
 </section>
@@ -163,7 +186,11 @@ Use <code class="docutils literal notranslate"><span class="pre">--ifos</span></
 <h2>Python API<a class="headerlink" href="#python-api" title="Link to this heading"></a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">buoy.main</span><span class="w"> </span><span class="kn">import</span> <span class="n">main</span>
 
+<span class="c1"># Single event</span>
 <span class="n">main</span><span class="p">(</span><span class="n">events</span><span class="o">=</span><span class="s2">&quot;GW150914&quot;</span><span class="p">,</span> <span class="n">outdir</span><span class="o">=</span><span class="s2">&quot;./results&quot;</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cuda&quot;</span><span class="p">)</span>
+
+<span class="c1"># All public events from a run, processed in parallel</span>
+<span class="n">main</span><span class="p">(</span><span class="n">observing_runs</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;O3a&quot;</span><span class="p">],</span> <span class="n">outdir</span><span class="o">=</span><span class="s2">&quot;./results&quot;</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cuda&quot;</span><span class="p">,</span> <span class="n">max_workers</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Models can also be instantiated directly for custom workflows:</p>
@@ -205,100 +232,116 @@ Use <code class="docutils literal notranslate"><span class="pre">--ifos</span></
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--events</span></code></p></td>
-<td><p><em>(required)</em></p></td>
+<td><p>—</p></td>
 <td><p>Event name(s) or GPS time(s) to analyze</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--outdir</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--observing_runs</span></code></p></td>
+<td><p>—</p></td>
+<td><p>GWOSC run label(s) (e.g. <code class="docutils literal notranslate"><span class="pre">[&quot;O3a&quot;,</span> <span class="pre">&quot;O3b&quot;]</span></code>); fetches all public events</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--gps_start</span></code></p></td>
+<td><p>—</p></td>
+<td><p>Start of GPS window; fetches all public events in <code class="docutils literal notranslate"><span class="pre">[gps_start,</span> <span class="pre">gps_end]</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--gps_end</span></code></p></td>
+<td><p>—</p></td>
+<td><p>End of GPS window; must be paired with <code class="docutils literal notranslate"><span class="pre">--gps_start</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--outdir</span></code></p></td>
 <td><p><em>(required)</em></p></td>
 <td><p>Directory to write results</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--samples_per_event</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--samples_per_event</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">20000</span></code></p></td>
 <td><p>Number of AMPLFI posterior samples</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--nside</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--nside</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">64</span></code></p></td>
 <td><p>HEALPix resolution for the skymap</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--min_samples_per_pix</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--min_samples_per_pix</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">5</span></code></p></td>
 <td><p>Minimum samples per pixel for distance ansatz</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--use_distance</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--use_distance</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
 <td><p>Include distance in the 3D skymap</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--aframe_weights</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--aframe_weights</span></code></p></td>
 <td><p>HuggingFace</p></td>
 <td><p>Path to Aframe TorchScript weights (<code class="docutils literal notranslate"><span class="pre">.pt</span></code>)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--amplfi_hl_weights</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--amplfi_hl_weights</span></code></p></td>
 <td><p>HuggingFace</p></td>
 <td><p>Path to AMPLFI HL checkpoint (<code class="docutils literal notranslate"><span class="pre">.ckpt</span></code>)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--amplfi_hlv_weights</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--amplfi_hlv_weights</span></code></p></td>
 <td><p>HuggingFace</p></td>
 <td><p>Path to AMPLFI HLV checkpoint (<code class="docutils literal notranslate"><span class="pre">.ckpt</span></code>)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--aframe_config</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--aframe_config</span></code></p></td>
 <td><p>HuggingFace</p></td>
 <td><p>Path to Aframe model config (<code class="docutils literal notranslate"><span class="pre">.yaml</span></code>)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--amplfi_hl_config</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--amplfi_hl_config</span></code></p></td>
 <td><p>HuggingFace</p></td>
 <td><p>Path to AMPLFI HL model config (<code class="docutils literal notranslate"><span class="pre">.yaml</span></code>)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--amplfi_hlv_config</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--amplfi_hlv_config</span></code></p></td>
 <td><p>HuggingFace</p></td>
 <td><p>Path to AMPLFI HLV model config (<code class="docutils literal notranslate"><span class="pre">.yaml</span></code>)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--aframe_revision</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--aframe_revision</span></code></p></td>
 <td><p>default branch</p></td>
 <td><p>HuggingFace revision for Aframe weights</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--amplfi_revision</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--amplfi_revision</span></code></p></td>
 <td><p>default branch</p></td>
 <td><p>HuggingFace revision for AMPLFI weights</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--model_cache_dir</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--model_cache_dir</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">~/.cache/huggingface</span></code></p></td>
 <td><p>Local HuggingFace cache directory</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--use_true_tc_for_amplfi</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--use_true_tc_for_amplfi</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
 <td><p>Use catalog/GraceDB time instead of Aframe-inferred time</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--ifos</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--ifos</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">[&quot;H1&quot;,&quot;L1&quot;,&quot;V1&quot;]</span></code></p></td>
 <td><p>Detectors to use for GPS time events</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--device</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--device</span></code></p></td>
 <td><p>auto</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">cpu</span></code> or <code class="docutils literal notranslate"><span class="pre">cuda</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--seed</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--seed</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
 <td><p>Random seed for AMPLFI reproducibility</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--verbose</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--verbose</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
 <td><p>Enable DEBUG-level logging</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--run_aframe</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--run_aframe</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
 <td><p>Run Aframe inference; if false, load saved outputs</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--run_amplfi</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--run_amplfi</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
 <td><p>Run AMPLFI inference; if false, skip PE</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--generate_plots</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--generate_plots</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
 <td><p>Generate output plots</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--force</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--force</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
 <td><p>Reprocess events even if outputs already exist</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--max_workers</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1</span></code></p></td>
+<td><p>Number of events to process concurrently</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--corner_parameters</span></code></p></td>
 <td><p>see below</p></td>

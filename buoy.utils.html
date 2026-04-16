@@ -57,6 +57,7 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Utilities</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#buoy.utils.data.get_local_or_hf"><code class="docutils literal notranslate"><span class="pre">get_local_or_hf()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#buoy.utils.data.slice_amplfi_data"><code class="docutils literal notranslate"><span class="pre">slice_amplfi_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#buoy.utils.data.get_events_for_runs"><code class="docutils literal notranslate"><span class="pre">get_events_for_runs()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#buoy.utils.preprocessing.BackgroundSnapshotter"><code class="docutils literal notranslate"><span class="pre">BackgroundSnapshotter</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#buoy.utils.preprocessing.BackgroundSnapshotter.forward"><code class="docutils literal notranslate"><span class="pre">BackgroundSnapshotter.forward()</span></code></a></li>
 </ul>
@@ -163,6 +164,26 @@ shape <code class="docutils literal notranslate"><span class="pre">(num_channels
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>ValueError</strong> – If the requested window extends outside the bounds of
     <code class="docutils literal notranslate"><span class="pre">data</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="buoy.utils.data.get_events_for_runs">
+<span class="sig-prename descclassname"><span class="pre">buoy.utils.data.</span></span><span class="sig-name descname"><span class="pre">get_events_for_runs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">observing_runs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gps_segment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/buoy/utils/data.html#get_events_for_runs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#buoy.utils.data.get_events_for_runs" title="Link to this definition"></a></dt>
+<dd><p>Return public GW event base names filtered by run or GPS range.</p>
+<p>Exactly one of observing_runs or gps_segment must be provided.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>observing_runs</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – GWOSC run labels (e.g. [“O3a”, “O3b”]). Valid run
+names include O1, O2, O3a, O3b, O4a.</p></li>
+<li><p><strong>gps_segment</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – (start, end) GPS time tuple to filter events by time
+window. Mutually exclusive with observing_runs.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span></p>
 </dd>
 </dl>
 </dd></dl>

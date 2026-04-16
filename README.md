@@ -55,6 +55,8 @@ When using a GPS time, buoy defaults to fetching data for H1, L1, and V1. Use `-
 
 ## Usage
 
+Exactly one event source must be supplied: explicit event name(s) via `--events`, an observing run via `--observing_runs`, or a GPS window via `--gps_start`/`--gps_end`.
+
 ### Single event
 
 ```bash
@@ -67,10 +69,30 @@ buoy --events GW150914 --outdir ./results
 buoy --events '["GW190521", "GW190828_063405", "S200213t"]' --outdir ./results
 ```
 
+### All public events from an observing run
+
+```bash
+buoy --observing_runs '["O3a"]' --outdir ./results
+```
+
+### All public events in a GPS time window
+
+```bash
+buoy --gps_start 1126051217 --gps_end 1137254417 --outdir ./results
+```
+
 ### GPS time event
 
 ```bash
 buoy --events 1187008882.4 --outdir ./results --ifos '["H1", "L1"]'
+```
+
+### Parallel processing
+
+Use `--max_workers` to process multiple events concurrently. Data fetching for the next event overlaps with model inference for the current one:
+
+```bash
+buoy --observing_runs '["O3a"]' --outdir ./results --max_workers 4
 ```
 
 ### Config file
@@ -118,7 +140,10 @@ buoy --config config.yaml
 
 | Argument | Default | Description |
 |----------|---------|-------------|
-| `--events` | *(required)* | Event name(s) or GPS time(s) to analyze |
+| `--events` | — | Event name(s) or GPS time(s) to analyze |
+| `--observing_runs` | — | GWOSC run label(s) (e.g. `["O3a", "O3b"]`); fetches all public events |
+| `--gps_start` | — | Start of GPS window; fetches all public events in `[gps_start, gps_end]` |
+| `--gps_end` | — | End of GPS window; must be paired with `--gps_start` |
 | `--outdir` | *(required)* | Directory to write results |
 | `--samples_per_event` | `20000` | Number of AMPLFI posterior samples |
 | `--nside` | `64` | HEALPix resolution for the skymap |
@@ -141,6 +166,7 @@ buoy --config config.yaml
 | `--run_amplfi` | `true` | Run AMPLFI inference; if false, skip PE |
 | `--generate_plots` | `true` | Generate output plots |
 | `--force` | `false` | Reprocess events even if outputs already exist |
+| `--max_workers` | `1` | Number of events to process concurrently |
 | `--corner_parameters` | see below | Parameters to include in the corner plot |
 | `--to_html` | `false` | Generate an HTML summary page |
 | `--config` | — | Path to a YAML config file |

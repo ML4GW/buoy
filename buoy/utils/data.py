@@ -137,6 +137,50 @@ def slice_amplfi_data(
     return psd_data, window
 
 
+def get_events_for_runs(
+    observing_runs: list[str] | None = None,
+    gps_segment: tuple[float, float] | None = None,
+) -> list[str]:
+    """Return public GW event base names filtered by run or GPS range.
+
+    Exactly one of observing_runs or gps_segment must be provided.
+
+    Args:
+        observing_runs: GWOSC run labels (e.g. ["O3a", "O3b"]). Valid run
+            names include O1, O2, O3a, O3b, O4a.
+        gps_segment: (start, end) GPS time tuple to filter events by time
+            window. Mutually exclusive with observing_runs.
+    """
+    if observing_runs is None and gps_segment is None:
+        raise ValueError(
+            "At least one of observing_runs or gps_segment must be provided. "
+            "To fetch all public events use get_all_public_events()."
+        )
+    if observing_runs is not None and gps_segment is not None:
+        raise ValueError(
+            "observing_runs and gps_segment are mutually exclusive."
+        )
+
+    if gps_segment is not None:
+        raw = gwosc.datasets.find_datasets(type="event", segment=gps_segment)
+        context = f" in GPS range {gps_segment}"
+    else:
+        raw = []
+        for run in observing_runs:
+            seg = gwosc.datasets.run_segment(run)
+            raw.extend(gwosc.datasets.find_datasets(type="event", segment=seg))
+        context = f" for observing runs: {observing_runs}"
+
+    bases = set()
+    for name in raw:
+        base = name.split("-v")[0] if "-v" in name else name
+        if base.startswith("GW"):
+            bases.add(base)
+    if not bases:
+        raise ValueError(f"No public GW events found{context}")
+    return sorted(bases)
+
+
 def get_data(
     event: str | float,
     sample_rate: float,

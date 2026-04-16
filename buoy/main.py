@@ -8,7 +8,7 @@ import numpy as np
 import torch
 
 from .models import Aframe, Amplfi
-from .utils.data import get_data
+from .utils.data import get_data, get_events_for_runs
 from .utils.html import generate_html
 from .utils.plotting import (
     plot_aframe_response,
@@ -36,9 +36,53 @@ def _resolve_device(device: str | None) -> str:
     return device
 
 
+def _resolve_events(
+    events: str | list[str] | None,
+    observing_runs: list[str] | None,
+    gps_start: float | None,
+    gps_end: float | None,
+) -> list[str]:
+    if (gps_start is None) != (gps_end is None):
+        raise ValueError("gps_start and gps_end must be provided together.")
+
+    gps_segment = (gps_start, gps_end) if gps_start is not None else None
+
+    if events is not None and (
+        observing_runs is not None or gps_segment is not None
+    ):
+        logging.warning(
+            "Both 'events' and run/GPS times were provided. "
+            "Only 'events' will be used."
+        )
+
+    if events is not None:
+        return [events] if not isinstance(events, list) else events
+
+    if observing_runs is None and gps_segment is None:
+        raise ValueError(
+            "One of 'events', 'observing_runs', or "
+            "'gps_start'/'gps_end' must be provided."
+        )
+    if observing_runs is not None and gps_segment is not None:
+        raise ValueError(
+            "observing_runs and gps_start/gps_end are mutually exclusive."
+        )
+    logging.info(
+        "Fetching public GW events from GWOSC"
+        + (f" for runs: {observing_runs}" if observing_runs else "")
+        + (f" between GPS {gps_start} and {gps_end}" if gps_segment else "")
+    )
+    resolved = get_events_for_runs(observing_runs, gps_segment)
+    logging.info(f"Found {len(resolved)} public GW event(s) to analyze")
+    return resolved
+
+
 def main(
-    events: str | list[str],
     outdir: Path,
+    events: str | list[str] | None = None,
+    observing_runs: list[str] | None = None,
+    gps_start: float | None = None,
+    gps_end: float | None = None,
     samples_per_event: int = 20000,
     nside: int = 64,
     min_samples_per_pix: int = 5,
@@ -68,14 +112,32 @@ def main(
     Main function to run Aframe and AMPLFI on the given events
     and produce output plots.
 
+    Exactly one event source must be supplied: either explicit event
+    names via ``events``, a set of observing runs via ``observing_runs``,
+    or a GPS time window via ``gps_start`` and ``gps_end``.
+
     Args:
+        outdir:
+            Output directory to save results.
         events:
             Gravitational wave event name(s) to process. Accepts known
             event names (e.g. GW150914), GraceDB events (e.g. G363842),
             GraceDB superevents (e.g. S200213t), or GPS times
-            (e.g. 1187008882.4).
-        outdir:
-            Output directory to save results.
+            (e.g. 1187008882.4). Mutually exclusive with
+            ``observing_runs`` and ``gps_start``/``gps_end``.
+        observing_runs:
+            GWOSC observing run label(s) (e.g. ["O3a", "O3b"]). All
+            public GW events from those runs are fetched automatically.
+            Valid run names: O1, O2, O3a, O3b, O4a. Mutually exclusive
+            with ``events`` and ``gps_start``/``gps_end``.
+        gps_start:
+            Start of a GPS time window. All public GW events with
+            GPS times in [gps_start, gps_end] will be analyzed. Must be
+            provided together with ``gps_end``. Mutually exclusive with
+            ``events`` and ``observing_runs``.
+        gps_end:
+            End of a GPS time window. Must be provided together with
+            ``gps_start``.
         samples_per_event:
             Number of samples for AMPLFI to generate for each event.
         nside:
@@ -157,6 +219,8 @@ def main(
     logging.getLogger("gwdatafind").setLevel(logging.WARNING)
     logging.getLogger("matplotlib").setLevel(logging.WARNING)
 
+    events = _resolve_events(events, observing_runs, gps_start, gps_end)
+
     if seed is not None:
         torch.manual_seed(seed)
 
@@ -199,9 +263,6 @@ def main(
             f"AMPLFI-HL={amplfi_hl.sample_rate}, "
             f"AMPLFI-HLV={amplfi_hlv.sample_rate}. All models must match."
         )
-
-    if not isinstance(events, list):
-        events = [events]
 
     default_ifos = ifos
     for event in events:

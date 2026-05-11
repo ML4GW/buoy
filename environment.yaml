@@ -5,7 +5,7 @@ dependencies:
   # python/env dependencies
   - python=3.14.4
   - pip
-  - uv=0.11.8
+  - uv=0.11.13
   # frame file I/O dependencies
   - python-ldas-tools-framecpp<3.0.0
   - python-nds2-client

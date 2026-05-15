@@ -7,7 +7,7 @@ Stage: build
 ./pyproject.toml /opt/buoy/pyproject.toml
 ./uv.lock /opt/buoy/uv.lock
 ./README.md /opt/buoy/README.md
-./buoy /opt/buoy/buoy
+./src/buoy /opt/buoy/src/buoy
 
 %post
 mkdir -p /cvmfs /hdfs /gpfs /ceph /hadoop

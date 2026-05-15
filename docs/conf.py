@@ -2,8 +2,7 @@ import sys
 from importlib.metadata import distribution
 from pathlib import Path
 
-parent_path = str(Path(__file__).parents[1])
-sys.path.insert(0, parent_path)
+sys.path.insert(0, str(Path(__file__).parents[1] / "src"))
 
 dist = distribution("ml4gw-buoy")
 

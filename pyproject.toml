@@ -55,14 +55,11 @@ dev_template = "{tag}.post{ccount}+git.{sha}"
 requires = [ "setuptools>=77.0.3", "wheel", "setuptools-git-versioning>=2.0,<4",]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools.packages.find]
+where = ["src"]
+
 [tool.setuptools.package-data]
 buoy = ["py.typed"]
-
-[tool.hatch.build.targets.sdist]
-include = ["buoy"]
-
-[tool.hatch.build.targets.wheel]
-include = ["buoy"]
 
 [tool.ruff]
 line-length = 79
@@ -81,6 +78,7 @@ per-file-ignores =  {"**/__init__.py" = ["F401", "F403"]}
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = "--cov=buoy --cov-report=xml --cov-fail-under=50"
 
 [tool.coverage.run]
 source = ["buoy"]

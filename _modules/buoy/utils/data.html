@@ -219,6 +219,53 @@
 
 
 
+<div class="viewcode-block" id="get_events_for_runs">
+<a class="viewcode-back" href="../../../buoy.utils.html#buoy.utils.data.get_events_for_runs">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_events_for_runs</span><span class="p">(</span>
+    <span class="n">observing_runs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">gps_segment</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return public GW event base names filtered by run or GPS range.</span>
+
+<span class="sd">    Exactly one of observing_runs or gps_segment must be provided.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        observing_runs: GWOSC run labels (e.g. [&quot;O3a&quot;, &quot;O3b&quot;]). Valid run</span>
+<span class="sd">            names include O1, O2, O3a, O3b, O4a.</span>
+<span class="sd">        gps_segment: (start, end) GPS time tuple to filter events by time</span>
+<span class="sd">            window. Mutually exclusive with observing_runs.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">observing_runs</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">gps_segment</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;At least one of observing_runs or gps_segment must be provided. &quot;</span>
+            <span class="s2">&quot;To fetch all public events use get_all_public_events().&quot;</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">observing_runs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">gps_segment</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;observing_runs and gps_segment are mutually exclusive.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">gps_segment</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">raw</span> <span class="o">=</span> <span class="n">gwosc</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">find_datasets</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s2">&quot;event&quot;</span><span class="p">,</span> <span class="n">segment</span><span class="o">=</span><span class="n">gps_segment</span><span class="p">)</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot; in GPS range </span><span class="si">{</span><span class="n">gps_segment</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">raw</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">run</span> <span class="ow">in</span> <span class="n">observing_runs</span><span class="p">:</span>
+            <span class="n">seg</span> <span class="o">=</span> <span class="n">gwosc</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">run_segment</span><span class="p">(</span><span class="n">run</span><span class="p">)</span>
+            <span class="n">raw</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">gwosc</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">find_datasets</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s2">&quot;event&quot;</span><span class="p">,</span> <span class="n">segment</span><span class="o">=</span><span class="n">seg</span><span class="p">))</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot; for observing runs: </span><span class="si">{</span><span class="n">observing_runs</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="n">bases</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">raw</span><span class="p">:</span>
+        <span class="n">base</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-v&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;-v&quot;</span> <span class="ow">in</span> <span class="n">name</span> <span class="k">else</span> <span class="n">name</span>
+        <span class="k">if</span> <span class="n">base</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;GW&quot;</span><span class="p">):</span>
+            <span class="n">bases</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">base</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">bases</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No public GW events found</span><span class="si">{</span><span class="n">context</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">bases</span><span class="p">)</span></div>
+
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">get_data</span><span class="p">(</span>
     <span class="n">event</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">sample_rate</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>

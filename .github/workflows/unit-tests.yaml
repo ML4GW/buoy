@@ -39,12 +39,8 @@ jobs:
         COVERAGE_FILE: .coverage.${{ matrix.python-version }}
       run: uv run coverage xml -o coverage.xml
 
-    - name: Import CodeCov GPG key
-      run: |
-        curl https://keybase.io/codecovsecurity/pgp_keys.asc | gpg --no-default-keyring --keyring trustedkeys.gpg --import
-
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v5
+      uses: codecov/codecov-action@v7
       with:
         files: ./coverage.xml
         flags: py${{ matrix.python-version }}

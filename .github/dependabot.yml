@@ -11,6 +11,7 @@ updates:
 
     groups:
       production:
+        applies-to: version-updates
         patterns:
           - "amplfi"
           - "ml4gw"
@@ -23,12 +24,14 @@ updates:
           - "huggingface_hub"
 
       documentation:
+        applies-to: version-updates
         patterns:
           - "sphinx*"
           - "myst*"
           - "linkify-it-py"
           
       development:
+        applies-to: version-updates
         patterns: ["*"]
         exclude-patterns:
           - "amplfi"
@@ -43,6 +46,10 @@ updates:
           - "sphinx*"
           - "myst*"
           - "linkify-it-py"
+
+      security:
+        applies-to: security-updates
+        patterns: ["*"]
 
     versioning-strategy: increase-if-necessary
 

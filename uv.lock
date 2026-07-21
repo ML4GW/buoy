@@ -2922,7 +2922,7 @@ wheels = [
 
 [[package]]
 name = "ml4gw"
-version = "0.8.2"
+version = "0.8.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jaxtyping" },
@@ -2931,9 +2931,9 @@ dependencies = [
     { name = "torch" },
     { name = "torchaudio" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/21/2d/8a4363ebb9afc06cef2c895209abd2acf016de60e3f9207c9b82c26f5d86/ml4gw-0.8.2.tar.gz", hash = "sha256:1fa8c30fa9abb8c9c74ecb9483529bedaf1e7426166afa8c38eebf494ad194bd", size = 122228, upload-time = "2026-06-05T21:22:13.143Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/4a/1b/78a1d86e3253e3e8626b8079152caf92fb502c58ca8942d293426ad71139/ml4gw-0.8.3.tar.gz", hash = "sha256:d34aadd5d977498c3ac8922664a33874b1e5f5a29079033f0345683f7f9d1868", size = 124777, upload-time = "2026-06-24T17:16:52.947Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/02/e1/d2cd83d446017006b5f86de110c19b98898e0bccaa8329ed26144a176303/ml4gw-0.8.2-py3-none-any.whl", hash = "sha256:ae2db07bc992bd4b88babb2c600245ea28b1e37e794d047d5149bc5f804ad90b", size = 133298, upload-time = "2026-06-05T21:22:12.111Z" },
+    { url = "https://files.pythonhosted.org/packages/dd/14/3e96be1b039d7476e5ce32b701df31dc33651b53db4230e9ac38fbde003d/ml4gw-0.8.3-py3-none-any.whl", hash = "sha256:4601d2034b19b4e485c7f71a97983ea2dae9d407a8e2c126c1164c337c15462b", size = 136438, upload-time = "2026-06-24T17:16:51.813Z" },
 ]
 
 [[package]]

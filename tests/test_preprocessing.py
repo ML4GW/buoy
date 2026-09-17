@@ -1,7 +1,10 @@
 import pytest
 import torch
+import torch.nn.functional as F
 from conftest import FDURATION, FFTLENGTH, HIGHPASS, NUM_CHANNELS, SAMPLE_RATE
+from ml4gw.transforms import Heterodyne
 
+from buoy.utils.augmentation import HeterodyneAugmentor
 from buoy.utils.preprocessing import (
     BackgroundSnapshotter,
     BatchWhitener,
@@ -137,3 +140,55 @@ def test_batch_whitener_raises_on_wrong_ndim():
         whitener(torch.zeros(4))
     with pytest.raises(ValueError, match="2 or 3 dimensional"):
         whitener(torch.zeros(1, 2, 3, 4))
+
+
+def test_with_heterodyne_augmentor_top_k():
+
+    augmentor = HeterodyneAugmentor(
+        sample_rate=SAMPLE_RATE,
+        kernel_length=KERNEL_LENGTH,
+        chirp_mass_low=1.0,
+        chirp_mass_high=2.5,
+        num_chirp_masses=10,
+        chirp_mass_spacing="log",
+        keep_last_n_seconds=1.5,
+        top_k=5,
+    )
+
+    whitener = make_batch_whitener()
+    whitener_aug = make_batch_whitener(augmentor=augmentor)
+
+    x = whitener_input(whitener)
+
+    heterodyne = Heterodyne(
+        sample_rate=SAMPLE_RATE,
+        kernel_length=KERNEL_LENGTH,
+        chirp_mass=augmentor.chirp_mass_grid,
+        return_type="time",
+    )
+
+    kernels = whitener_aug(x)
+
+    kernels_heterodyned = heterodyne(whitener(x))
+    _B, _C, _M, _T = kernels_heterodyned.shape
+    avgpool = F.avg_pool1d(
+        torch.abs(kernels_heterodyned.reshape(_B, _C * _M, _T)),
+        31,
+        stride=1,
+        padding=15,
+    ).reshape(_B, _C, _M, _T)
+    avgpool_snr = torch.sqrt(
+        (avgpool[..., -int(1.5 * SAMPLE_RATE) :] ** 2).sum(dim=1)
+    )
+    vals = torch.max(avgpool_snr, dim=-1).values
+    idx = torch.topk(vals, k=5, dim=-1).indices
+    idx_expand = idx[:, None, :, None].expand(-1, _C, -1, _T)
+    kernels_heterodyned = torch.gather(
+        kernels_heterodyned, dim=2, index=idx_expand
+    )
+    kernels_heterodyned = kernels_heterodyned.reshape(_B, _C * 5, _T)
+    kernels_heterodyned = kernels_heterodyned[..., -int(1.5 * SAMPLE_RATE) :]
+    kernels = kernels_heterodyned
+
+    kernels_aug = whitener_aug(x)
+    assert torch.allclose(kernels_aug, kernels)

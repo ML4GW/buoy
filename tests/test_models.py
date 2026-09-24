@@ -1,8 +1,9 @@
 import pytest
 import torch
-from conftest import FDURATION, SAMPLE_RATE
+from conftest import AFRAME_CONFIG, FDURATION, SAMPLE_RATE
 from ml4gw.transforms import SpectralDensity, Whiten
 
+from buoy.models.aframe import AframeConfig
 from buoy.models.amplfi import Amplfi
 from buoy.models.base import BuoyModel
 
@@ -92,6 +93,34 @@ def test_aframe_call_raises_without_weights(aframe):
     """__call__ must raise RuntimeError when load_weights=False."""
     with pytest.raises(RuntimeError, match="load_weights=True"):
         aframe(torch.zeros(1, 2, 1000), t0=0.0)
+
+
+CHIRP_MASS_LOW = 1.0
+CHIRP_MASS_HIGH = 2.5
+NUM_CHIRP_MASSES = 10
+CHIRP_MASS_SPACING = "log"
+KEEP_LAST_N_SECONDS = 5.0
+TOP_K = 5
+
+
+def test_bns_missing_params_raises():
+    """BNS config without heterodyne parameters should raise ValueError."""
+    with pytest.raises(ValueError, match="chirp_mass_low"):
+        AframeConfig(**AFRAME_CONFIG, cbc_type="BNS")
+
+
+def test_bns_full_params_does_not_raise():
+    """BNS config with heterodyne parameters should not raise ValueError."""
+    AframeConfig(
+        **AFRAME_CONFIG,
+        cbc_type="BNS",
+        chirp_mass_low=CHIRP_MASS_LOW,
+        chirp_mass_high=CHIRP_MASS_HIGH,
+        num_chirp_masses=NUM_CHIRP_MASSES,
+        chirp_mass_spacing=CHIRP_MASS_SPACING,
+        keep_last_n_seconds=KEEP_LAST_N_SECONDS,
+        top_k=TOP_K,
+    )
 
 
 # --- Amplfi properties ---

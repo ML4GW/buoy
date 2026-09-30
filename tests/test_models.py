@@ -1,8 +1,10 @@
 import pytest
 import torch
-from conftest import FDURATION, SAMPLE_RATE
+import yaml
+from conftest import AFRAME_CONFIG, FDURATION, SAMPLE_RATE
 from ml4gw.transforms import SpectralDensity, Whiten
 
+from buoy.models.aframe import Aframe
 from buoy.models.amplfi import Amplfi
 from buoy.models.base import BuoyModel
 
@@ -92,6 +94,57 @@ def test_aframe_call_raises_without_weights(aframe):
     """__call__ must raise RuntimeError when load_weights=False."""
     with pytest.raises(RuntimeError, match="load_weights=True"):
         aframe(torch.zeros(1, 2, 1000), t0=0.0)
+
+
+# --- Aframe augmentor tests ---
+
+
+def test_aframe_default_augmentor_is_none(aframe):
+    """Augmentor defaults to None when not specified in config."""
+    assert aframe.augmentor is None
+
+
+CHIRP_MASS_LOW = 1.0
+CHIRP_MASS_HIGH = 2.5
+NUM_CHIRP_MASSES = 10
+CHIRP_MASS_SPACING = "log"
+KEEP_LAST_N_SECONDS = 1.0
+TOP_K = 5
+
+
+@pytest.fixture
+def aframe_with_augmentor(tmp_path):
+    cfg = tmp_path / "config_augmentor.yaml"
+    cfg.write_text(
+        yaml.dump(
+            {
+                **AFRAME_CONFIG,
+                "augmentor": {
+                    "class_path": (
+                        "buoy.utils.augmentation.HeterodyneAugmentor"
+                    ),
+                    "init_args": {
+                        "sample_rate": SAMPLE_RATE,
+                        "kernel_length": KERNEL_LENGTH,
+                        "chirp_mass_low": CHIRP_MASS_LOW,
+                        "chirp_mass_high": CHIRP_MASS_HIGH,
+                        "num_chirp_masses": NUM_CHIRP_MASSES,
+                        "chirp_mass_spacing": CHIRP_MASS_SPACING,
+                        "keep_last_n_seconds": KEEP_LAST_N_SECONDS,
+                        "top_k": TOP_K,
+                    },
+                },
+            }
+        )
+    )
+    return Aframe(config=cfg, load_weights=False, device="cpu")
+
+
+def test_aframe_whitener_augmentor(aframe_with_augmentor):
+    """BatchWhitener is configured with the augmentor instance."""
+    assert isinstance(
+        aframe_with_augmentor.whitener.augmentor, torch.nn.Module
+    )
 
 
 # --- Amplfi properties ---

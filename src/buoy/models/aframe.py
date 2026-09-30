@@ -27,6 +27,7 @@ class AframeConfig:
     aframe_right_pad: float
     integration_window_length: float
     lowpass: float | None = None
+    augmentor: torch.nn.Module | None = None
 
 
 class Aframe(AframeConfig, BuoyModel):
@@ -94,8 +95,9 @@ class Aframe(AframeConfig, BuoyModel):
         )
 
         parser = ArgumentParser()
-        parser.add_class_arguments(AframeConfig)
+        parser.add_class_arguments(AframeConfig, sub_configs=True)
         args = parser.parse_path(config)
+        args = parser.instantiate_classes(args)
 
         super().__init__(**vars(args))
         self.configure_preprocessing()
@@ -113,7 +115,9 @@ class Aframe(AframeConfig, BuoyModel):
             fftlength=self.fftlength,
             highpass=self.highpass,
             lowpass=self.lowpass,
+            augmentor=self.augmentor,
         ).to(self.device)
+
         self.snapshotter = BackgroundSnapshotter(
             psd_length=self.psd_length,
             kernel_length=self.kernel_length,
@@ -198,7 +202,7 @@ class Aframe(AframeConfig, BuoyModel):
                 batch = self.whitener(x)
 
                 # Run model inference
-                y_hat = self.model(batch).detach().cpu()[:, 0]
+                y_hat = self.model(batch.to(self.device)).detach().cpu()[:, 0]
                 ys.append(y_hat)
                 batches.append(batch.detach().cpu())
 

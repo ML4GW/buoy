@@ -12,7 +12,7 @@ NUM_CHANNELS = 2
 
 AFRAME_CONFIG = {
     "sample_rate": SAMPLE_RATE,
-    "kernel_length": 1.0,
+    "kernel_length": 4.0,
     "psd_length": 8.0,
     "fduration": FDURATION,
     "highpass": HIGHPASS,

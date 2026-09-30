@@ -1,14 +1,12 @@
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal
 
 import numpy as np
 import torch
 from jsonargparse import ArgumentParser
 
 from buoy.models.base import BuoyModel
-from buoy.utils.augmentation import HeterodyneAugmentor
 from buoy.utils.data import get_local_or_hf
 from buoy.utils.preprocessing import BackgroundSnapshotter, BatchWhitener
 
@@ -28,34 +26,8 @@ class AframeConfig:
     batch_size: int
     aframe_right_pad: float
     integration_window_length: float
-    cbc_type: Literal["BNS", "BBH"] = "BBH"
     lowpass: float | None = None
-    chirp_mass_spacing: Literal["linear", "log"] | None = None
-    chirp_mass_low: float = None
-    chirp_mass_high: float = None
-    num_chirp_masses: int = None
-    keep_last_n_seconds: float | None = None
-    top_k: int | None = None
-
-    def __post_init__(self):
-        if self.cbc_type == "BNS":
-            missing = [
-                name
-                for name, val in {
-                    "chirp_mass_spacing": self.chirp_mass_spacing,
-                    "chirp_mass_low": self.chirp_mass_low,
-                    "chirp_mass_high": self.chirp_mass_high,
-                    "num_chirp_masses": self.num_chirp_masses,
-                    "keep_last_n_seconds": self.keep_last_n_seconds,
-                    "top_k": self.top_k,
-                }.items()
-                if val is None
-            ]
-            if missing:
-                raise ValueError(
-                    f"cbc_type='BNS' requires the following config fields "
-                    f"to be set: {', '.join(missing)}"
-                )
+    augmentor: torch.nn.Module | None = None
 
 
 class Aframe(AframeConfig, BuoyModel):
@@ -123,8 +95,9 @@ class Aframe(AframeConfig, BuoyModel):
         )
 
         parser = ArgumentParser()
-        parser.add_class_arguments(AframeConfig)
+        parser.add_class_arguments(AframeConfig, sub_configs=True)
         args = parser.parse_path(config)
+        args = parser.instantiate_classes(args)
 
         super().__init__(**vars(args))
         self.configure_preprocessing()
@@ -133,38 +106,17 @@ class Aframe(AframeConfig, BuoyModel):
         )
 
     def configure_preprocessing(self) -> None:
-        if self.cbc_type == "BNS":
-            self.whitener = BatchWhitener(
-                kernel_length=self.kernel_length,
-                sample_rate=self.sample_rate,
-                inference_sampling_rate=self.inference_sampling_rate,
-                batch_size=self.batch_size,
-                fduration=self.fduration,
-                fftlength=self.fftlength,
-                highpass=self.highpass,
-                lowpass=self.lowpass,
-                augmentor=HeterodyneAugmentor(
-                    sample_rate=self.sample_rate,
-                    kernel_length=self.kernel_length,
-                    chirp_mass_low=self.chirp_mass_low,
-                    chirp_mass_high=self.chirp_mass_high,
-                    num_chirp_masses=self.num_chirp_masses,
-                    chirp_mass_spacing=self.chirp_mass_spacing,
-                    keep_last_n_seconds=self.keep_last_n_seconds,
-                    top_k=self.top_k,
-                ),
-            ).to(self.device)
-        else:
-            self.whitener = BatchWhitener(
-                kernel_length=self.kernel_length,
-                sample_rate=self.sample_rate,
-                inference_sampling_rate=self.inference_sampling_rate,
-                batch_size=self.batch_size,
-                fduration=self.fduration,
-                fftlength=self.fftlength,
-                highpass=self.highpass,
-                lowpass=self.lowpass,
-            ).to(self.device)
+        self.whitener = BatchWhitener(
+            kernel_length=self.kernel_length,
+            sample_rate=self.sample_rate,
+            inference_sampling_rate=self.inference_sampling_rate,
+            batch_size=self.batch_size,
+            fduration=self.fduration,
+            fftlength=self.fftlength,
+            highpass=self.highpass,
+            lowpass=self.lowpass,
+            augmentor=self.augmentor,
+        ).to(self.device)
 
         self.snapshotter = BackgroundSnapshotter(
             psd_length=self.psd_length,

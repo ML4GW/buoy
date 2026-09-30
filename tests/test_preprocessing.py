@@ -12,7 +12,7 @@ from buoy.utils.preprocessing import (
 )
 
 INFERENCE_SAMPLING_RATE = 32
-KERNEL_LENGTH = 1.0
+KERNEL_LENGTH = 2.0
 PSD_LENGTH = 8.0
 BATCH_SIZE = 8
 

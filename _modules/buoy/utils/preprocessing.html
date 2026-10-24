@@ -8,6 +8,7 @@
   <title>buoy.utils.preprocessing &mdash; buoy 0.0.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/sphinx_autodoc_typehints.css?v=057ac668" />
 
   
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
@@ -88,7 +89,7 @@
 <div class="viewcode-block" id="BackgroundSnapshotter">
 <a class="viewcode-back" href="../../../buoy.utils.html#buoy.utils.preprocessing.BackgroundSnapshotter">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">BackgroundSnapshotter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Update a kernel with a new piece of streaming data&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Update a kernel with a new piece of streaming data"""</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -116,7 +117,7 @@
 <div class="viewcode-block" id="PsdEstimator">
 <a class="viewcode-back" href="../../../buoy.utils.html#buoy.utils.preprocessing.PsdEstimator">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">PsdEstimator</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Module that takes a sample of data, splits it into</span>
 <span class="sd">    two unequal-length segments, calculates the PSD of</span>
 <span class="sd">    the first section, then returns this PSD along with</span>
@@ -139,13 +140,13 @@
 <span class="sd">            uses `fftlength / 2`</span>
 <span class="sd">        average:</span>
 <span class="sd">            Method for aggregating spectra from FFT</span>
-<span class="sd">            windows, either `&quot;mean&quot;` or `&quot;median&quot;`</span>
+<span class="sd">            windows, either `"mean"` or `"median"`</span>
 <span class="sd">        fast:</span>
 <span class="sd">            If `True`, use a slightly faster PSD algorithm</span>
 <span class="sd">            that is inaccurate for the lowest two frequency</span>
 <span class="sd">            bins. If you plan on highpassing later, this</span>
 <span class="sd">            should be fine.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -154,7 +155,7 @@
         <span class="n">fftlength</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
         <span class="n">window</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">overlap</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">average</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;median&quot;</span><span class="p">,</span>
+        <span class="n">average</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"median"</span><span class="p">,</span>
         <span class="n">fast</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
@@ -189,7 +190,7 @@
 <div class="viewcode-block" id="BatchWhitener">
 <a class="viewcode-back" href="../../../buoy.utils.html#buoy.utils.preprocessing.BatchWhitener">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">BatchWhitener</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the PSDs and whiten an entire batch of kernels at once&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Calculate the PSDs and whiten an entire batch of kernels at once"""</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -221,7 +222,7 @@
             <span class="n">sample_rate</span><span class="p">,</span>
             <span class="n">fftlength</span><span class="o">=</span><span class="n">fftlength</span><span class="p">,</span>
             <span class="n">overlap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">average</span><span class="o">=</span><span class="s2">&quot;median&quot;</span><span class="p">,</span>
+            <span class="n">average</span><span class="o">=</span><span class="s2">"median"</span><span class="p">,</span>
             <span class="n">fast</span><span class="o">=</span><span class="n">highpass</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">whitener</span> <span class="o">=</span> <span class="n">Whiten</span><span class="p">(</span><span class="n">fduration</span><span class="p">,</span> <span class="n">sample_rate</span><span class="p">,</span> <span class="n">highpass</span><span class="p">,</span> <span class="n">lowpass</span><span class="p">)</span>
@@ -238,8 +239,8 @@
             <span class="n">num_channels</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;Expected input to be either 2 or 3 dimensional, &quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;but found shape </span><span class="si">{</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="s2">"Expected input to be either 2 or 3 dimensional, "</span>
+                <span class="sa">f</span><span class="s2">"but found shape </span><span class="si">{</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">"</span>
             <span class="p">)</span>
 
         <span class="n">x</span><span class="p">,</span> <span class="n">psd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">psd_estimator</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>

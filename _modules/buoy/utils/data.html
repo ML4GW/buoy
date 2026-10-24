@@ -8,6 +8,7 @@
   <title>buoy.utils.data &mdash; buoy 0.0.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/sphinx_autodoc_typehints.css?v=057ac668" />
 
   
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
@@ -89,9 +90,9 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">ligo.gracedb.rest</span><span class="w"> </span><span class="kn">import</span> <span class="n">GraceDb</span>
 
 <span class="n">STRAIN_CHANNELS</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;H1&quot;</span><span class="p">:</span> <span class="s2">&quot;H1:GDS-CALIB_STRAIN_CLEAN&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;L1&quot;</span><span class="p">:</span> <span class="s2">&quot;L1:GDS-CALIB_STRAIN_CLEAN&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;V1&quot;</span><span class="p">:</span> <span class="s2">&quot;V1:Hrec_hoft_16384Hz&quot;</span><span class="p">,</span>
+    <span class="s2">"H1"</span><span class="p">:</span> <span class="s2">"H1:GDS-CALIB_STRAIN_CLEAN"</span><span class="p">,</span>
+    <span class="s2">"L1"</span><span class="p">:</span> <span class="s2">"L1:GDS-CALIB_STRAIN_CLEAN"</span><span class="p">,</span>
+    <span class="s2">"V1"</span><span class="p">:</span> <span class="s2">"V1:Hrec_hoft_16384Hz"</span><span class="p">,</span>
 <span class="p">}</span>
 
 
@@ -104,7 +105,7 @@
     <span class="n">revision</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">cache_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Determine whether a given file exists locally or in a HuggingFace</span>
 <span class="sd">    repository. If the file exists locally, return the filename.</span>
 <span class="sd">    If it does not exist locally, attempt to download it from the</span>
@@ -124,15 +125,15 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        The path to the file.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">Path</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loading </span><span class="si">{</span><span class="n">descriptor</span><span class="si">}</span><span class="s2"> from </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Loading </span><span class="si">{</span><span class="n">descriptor</span><span class="si">}</span><span class="s2"> from </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Downloading </span><span class="si">{</span><span class="n">descriptor</span><span class="si">}</span><span class="s2"> from HuggingFace &quot;</span>
-                <span class="s2">&quot;or loading from cache&quot;</span>
+                <span class="sa">f</span><span class="s2">"Downloading </span><span class="si">{</span><span class="n">descriptor</span><span class="si">}</span><span class="s2"> from HuggingFace "</span>
+                <span class="s2">"or loading from cache"</span>
             <span class="p">)</span>
             <span class="k">return</span> <span class="n">hf_hub_download</span><span class="p">(</span>
                 <span class="n">repo_id</span><span class="o">=</span><span class="n">repo_id</span><span class="p">,</span>
@@ -142,8 +143,8 @@
             <span class="p">)</span>
         <span class="k">except</span> <span class="n">EntryNotFoundError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">descriptor</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2"> not found locally or in &quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;HuggingFace repository </span><span class="si">{</span><span class="n">repo_id</span><span class="si">}</span><span class="s2">. Please check the name.&quot;</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">descriptor</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2"> not found locally or in "</span>
+                <span class="sa">f</span><span class="s2">"HuggingFace repository </span><span class="si">{</span><span class="n">repo_id</span><span class="si">}</span><span class="s2">. Please check the name."</span>
             <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
 
 
@@ -160,7 +161,7 @@
     <span class="n">psd_length</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">fduration</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Slice a strain tensor into the PSD background and inference window</span>
 <span class="sd">    required by AMPLFI.</span>
 
@@ -184,7 +185,7 @@
 <span class="sd">    Raises:</span>
 <span class="sd">        ValueError: If the requested window extends outside the bounds of</span>
 <span class="sd">            ``data``.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">window_start</span> <span class="o">=</span> <span class="n">tc</span> <span class="o">-</span> <span class="n">t0</span> <span class="o">-</span> <span class="n">event_position</span> <span class="o">-</span> <span class="n">fduration</span> <span class="o">/</span> <span class="mi">2</span>
     <span class="n">window_start</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">sample_rate</span> <span class="o">*</span> <span class="n">window_start</span><span class="p">)</span>
     <span class="n">window_length</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">kernel_length</span> <span class="o">+</span> <span class="n">fduration</span><span class="p">)</span> <span class="o">*</span> <span class="n">sample_rate</span><span class="p">)</span>
@@ -192,24 +193,24 @@
 
     <span class="k">if</span> <span class="n">window_start</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="s2">&quot;The start of the AMPLFI window before the start of the data. &quot;</span>
-            <span class="s2">&quot;This may be due to the event time being too close to &quot;</span>
-            <span class="s2">&quot;the start of the data.&quot;</span>
+            <span class="s2">"The start of the AMPLFI window before the start of the data. "</span>
+            <span class="s2">"This may be due to the event time being too close to "</span>
+            <span class="s2">"the start of the data."</span>
         <span class="p">)</span>
     <span class="k">if</span> <span class="n">window_end</span> <span class="o">&gt;</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="s2">&quot;The end of the AMPLFI window is after the end of the data. &quot;</span>
-            <span class="s2">&quot;This may be due to the event time being too close to &quot;</span>
-            <span class="s2">&quot;the end of the data.&quot;</span>
+            <span class="s2">"The end of the AMPLFI window is after the end of the data. "</span>
+            <span class="s2">"This may be due to the event time being too close to "</span>
+            <span class="s2">"the end of the data."</span>
         <span class="p">)</span>
 
     <span class="n">psd_start</span> <span class="o">=</span> <span class="n">window_start</span> <span class="o">-</span> <span class="nb">int</span><span class="p">(</span><span class="n">psd_length</span> <span class="o">*</span> <span class="n">sample_rate</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">psd_start</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="s2">&quot;The start of the PSD window before the start of the data. &quot;</span>
-            <span class="s2">&quot;This may be due to the event time being too close to &quot;</span>
-            <span class="s2">&quot;the start of the data.&quot;</span>
+            <span class="s2">"The start of the PSD window before the start of the data. "</span>
+            <span class="s2">"This may be due to the event time being too close to "</span>
+            <span class="s2">"the start of the data."</span>
         <span class="p">)</span>
 
     <span class="n">psd_data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="n">psd_start</span><span class="p">:</span><span class="n">window_start</span><span class="p">]</span>
@@ -225,43 +226,43 @@
     <span class="n">observing_runs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">gps_segment</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return public GW event base names filtered by run or GPS range.</span>
+<span class="w">    </span><span class="sd">"""Return public GW event base names filtered by run or GPS range.</span>
 
 <span class="sd">    Exactly one of observing_runs or gps_segment must be provided.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        observing_runs: GWOSC run labels (e.g. [&quot;O3a&quot;, &quot;O3b&quot;]). Valid run</span>
+<span class="sd">        observing_runs: GWOSC run labels (e.g. ["O3a", "O3b"]). Valid run</span>
 <span class="sd">            names include O1, O2, O3a, O3b, O4a.</span>
 <span class="sd">        gps_segment: (start, end) GPS time tuple to filter events by time</span>
 <span class="sd">            window. Mutually exclusive with observing_runs.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">observing_runs</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">gps_segment</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="s2">&quot;At least one of observing_runs or gps_segment must be provided. &quot;</span>
-            <span class="s2">&quot;To fetch all public events use get_all_public_events().&quot;</span>
+            <span class="s2">"At least one of observing_runs or gps_segment must be provided. "</span>
+            <span class="s2">"To fetch all public events use get_all_public_events()."</span>
         <span class="p">)</span>
     <span class="k">if</span> <span class="n">observing_runs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">gps_segment</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="s2">&quot;observing_runs and gps_segment are mutually exclusive.&quot;</span>
+            <span class="s2">"observing_runs and gps_segment are mutually exclusive."</span>
         <span class="p">)</span>
 
     <span class="k">if</span> <span class="n">gps_segment</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">raw</span> <span class="o">=</span> <span class="n">gwosc</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">find_datasets</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s2">&quot;event&quot;</span><span class="p">,</span> <span class="n">segment</span><span class="o">=</span><span class="n">gps_segment</span><span class="p">)</span>
-        <span class="n">context</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot; in GPS range </span><span class="si">{</span><span class="n">gps_segment</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">raw</span> <span class="o">=</span> <span class="n">gwosc</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">find_datasets</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s2">"event"</span><span class="p">,</span> <span class="n">segment</span><span class="o">=</span><span class="n">gps_segment</span><span class="p">)</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">" in GPS range </span><span class="si">{</span><span class="n">gps_segment</span><span class="si">}</span><span class="s2">"</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">raw</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">run</span> <span class="ow">in</span> <span class="n">observing_runs</span><span class="p">:</span>
             <span class="n">seg</span> <span class="o">=</span> <span class="n">gwosc</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">run_segment</span><span class="p">(</span><span class="n">run</span><span class="p">)</span>
-            <span class="n">raw</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">gwosc</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">find_datasets</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s2">&quot;event&quot;</span><span class="p">,</span> <span class="n">segment</span><span class="o">=</span><span class="n">seg</span><span class="p">))</span>
-        <span class="n">context</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot; for observing runs: </span><span class="si">{</span><span class="n">observing_runs</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">raw</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">gwosc</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">find_datasets</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s2">"event"</span><span class="p">,</span> <span class="n">segment</span><span class="o">=</span><span class="n">seg</span><span class="p">))</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">" for observing runs: </span><span class="si">{</span><span class="n">observing_runs</span><span class="si">}</span><span class="s2">"</span>
 
     <span class="n">bases</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
     <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">raw</span><span class="p">:</span>
-        <span class="n">base</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-v&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;-v&quot;</span> <span class="ow">in</span> <span class="n">name</span> <span class="k">else</span> <span class="n">name</span>
-        <span class="k">if</span> <span class="n">base</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;GW&quot;</span><span class="p">):</span>
+        <span class="n">base</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"-v"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="s2">"-v"</span> <span class="ow">in</span> <span class="n">name</span> <span class="k">else</span> <span class="n">name</span>
+        <span class="k">if</span> <span class="n">base</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"GW"</span><span class="p">):</span>
             <span class="n">bases</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">base</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">bases</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No public GW events found</span><span class="si">{</span><span class="n">context</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No public GW events found</span><span class="si">{</span><span class="n">context</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
     <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">bases</span><span class="p">)</span></div>
 
 
@@ -274,44 +275,44 @@
     <span class="n">ifos</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
     <span class="n">event</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;GW&quot;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"GW"</span><span class="p">):</span>
         <span class="n">event_time</span> <span class="o">=</span> <span class="n">gwosc</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">event_gps</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
         <span class="n">ifos</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">gwosc</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">event_detectors</span><span class="p">(</span><span class="n">event</span><span class="p">))</span>
-    <span class="k">elif</span> <span class="n">event</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;G&quot;</span><span class="p">):</span>
+    <span class="k">elif</span> <span class="n">event</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"G"</span><span class="p">):</span>
         <span class="n">client</span> <span class="o">=</span> <span class="n">GraceDb</span><span class="p">()</span>
         <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">event</span><span class="p">(</span><span class="n">event</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
-        <span class="n">event_time</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;gpstime&quot;</span><span class="p">]</span>
-        <span class="n">ifos</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;instruments&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">event</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;S&quot;</span><span class="p">):</span>
+        <span class="n">event_time</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s2">"gpstime"</span><span class="p">]</span>
+        <span class="n">ifos</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s2">"instruments"</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">","</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">event</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"S"</span><span class="p">):</span>
         <span class="n">client</span> <span class="o">=</span> <span class="n">GraceDb</span><span class="p">()</span>
         <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">superevent</span><span class="p">(</span><span class="n">event</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
-        <span class="n">event_time</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;preferred_event_data&quot;</span><span class="p">][</span><span class="s2">&quot;gpstime&quot;</span><span class="p">]</span>
-        <span class="n">ifos</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;preferred_event_data&quot;</span><span class="p">][</span><span class="s2">&quot;instruments&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+        <span class="n">event_time</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s2">"preferred_event_data"</span><span class="p">][</span><span class="s2">"gpstime"</span><span class="p">]</span>
+        <span class="n">ifos</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s2">"preferred_event_data"</span><span class="p">][</span><span class="s2">"instruments"</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">","</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">event_time</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Event </span><span class="si">{</span><span class="n">event</span><span class="si">}</span><span class="s2"> is not a valid event name. &quot;</span>
-                <span class="s2">&quot;Should be a valid GPS time, a known gravitational wave &quot;</span>
-                <span class="s2">&quot;event name (e.g. GW123456), or a GraceDB event or superevent &quot;</span>
-                <span class="s2">&quot;(e.g. G123456 or S123456).&quot;</span>
+                <span class="sa">f</span><span class="s2">"Event </span><span class="si">{</span><span class="n">event</span><span class="si">}</span><span class="s2"> is not a valid event name. "</span>
+                <span class="s2">"Should be a valid GPS time, a known gravitational wave "</span>
+                <span class="s2">"event name (e.g. GW123456), or a GraceDB event or superevent "</span>
+                <span class="s2">"(e.g. G123456 or S123456)."</span>
             <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
-        <span class="n">ifos</span> <span class="o">=</span> <span class="n">ifos</span> <span class="ow">or</span> <span class="p">[</span><span class="s2">&quot;H1&quot;</span><span class="p">,</span> <span class="s2">&quot;L1&quot;</span><span class="p">,</span> <span class="s2">&quot;V1&quot;</span><span class="p">]</span>
+        <span class="n">ifos</span> <span class="o">=</span> <span class="n">ifos</span> <span class="ow">or</span> <span class="p">[</span><span class="s2">"H1"</span><span class="p">,</span> <span class="s2">"L1"</span><span class="p">,</span> <span class="s2">"V1"</span><span class="p">]</span>
 
     <span class="c1"># Make sure things start at an integer time for consistency.</span>
     <span class="c1"># Take data from psd_length * (-1.5, 0.5) around the event</span>
-    <span class="c1"># time to make sure there&#39;s enough for analysis. This isn&#39;t</span>
+    <span class="c1"># time to make sure there's enough for analysis. This isn't</span>
     <span class="c1"># totally robust, but should be good for most use cases.</span>
     <span class="n">offset</span> <span class="o">=</span> <span class="n">event_time</span> <span class="o">%</span> <span class="mi">1</span>
     <span class="n">start</span> <span class="o">=</span> <span class="n">event_time</span> <span class="o">-</span> <span class="mf">1.5</span> <span class="o">*</span> <span class="n">psd_length</span> <span class="o">-</span> <span class="n">offset</span>
     <span class="n">end</span> <span class="o">=</span> <span class="n">event_time</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">psd_length</span> <span class="o">-</span> <span class="n">offset</span>
 
-    <span class="n">datafile</span> <span class="o">=</span> <span class="n">datadir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">event</span><span class="si">}</span><span class="s2">.hdf5&quot;</span>
+    <span class="n">datafile</span> <span class="o">=</span> <span class="n">datadir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">event</span><span class="si">}</span><span class="s2">.hdf5"</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">datafile</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-            <span class="s2">&quot;Fetching data from between GPS times &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">start</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">end</span><span class="si">}</span><span class="s2"> for </span><span class="si">{</span><span class="n">ifos</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="s2">"Fetching data from between GPS times "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">start</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">end</span><span class="si">}</span><span class="s2"> for </span><span class="si">{</span><span class="n">ifos</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span>
 
         <span class="n">ts_dict</span> <span class="o">=</span> <span class="n">TimeSeriesDict</span><span class="p">()</span>
@@ -325,25 +326,25 @@
             <span class="k">if</span> <span class="n">span</span><span class="o">.</span><span class="n">end</span> <span class="o">-</span> <span class="n">span</span><span class="o">.</span><span class="n">start</span> <span class="o">&lt;</span> <span class="mi">128</span><span class="p">:</span>
                 <span class="n">ts_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">ifo</span><span class="p">)</span>
                 <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;Detector </span><span class="si">{</span><span class="n">ifo</span><span class="si">}</span><span class="s2"> did not have sufficient data surrounding &quot;</span>
-                    <span class="s2">&quot;the event time, removing it from the dataset&quot;</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s2">"Detector </span><span class="si">{</span><span class="n">ifo</span><span class="si">}</span><span class="s2"> did not have sufficient data surrounding "</span>
+                    <span class="s2">"the event time, removing it from the dataset"</span><span class="p">,</span>
                     <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
                 <span class="p">)</span>
 
         <span class="n">ifos</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ts_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Fetched data for detectors </span><span class="si">{</span><span class="n">ifos</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">ifos</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[[</span><span class="s2">&quot;H1&quot;</span><span class="p">,</span> <span class="s2">&quot;L1&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;H1&quot;</span><span class="p">,</span> <span class="s2">&quot;L1&quot;</span><span class="p">,</span> <span class="s2">&quot;V1&quot;</span><span class="p">]]:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Fetched data for detectors </span><span class="si">{</span><span class="n">ifos</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ifos</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[[</span><span class="s2">"H1"</span><span class="p">,</span> <span class="s2">"L1"</span><span class="p">],</span> <span class="p">[</span><span class="s2">"H1"</span><span class="p">,</span> <span class="s2">"L1"</span><span class="p">,</span> <span class="s2">"V1"</span><span class="p">]]:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Event </span><span class="si">{</span><span class="n">event</span><span class="si">}</span><span class="s2"> does not have the required detectors. &quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;Expected [&#39;H1&#39;, &#39;L1&#39;] or [&#39;H1&#39;, &#39;L1&#39;, &#39;V1&#39;], got </span><span class="si">{</span><span class="n">ifos</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="sa">f</span><span class="s2">"Event </span><span class="si">{</span><span class="n">event</span><span class="si">}</span><span class="s2"> does not have the required detectors. "</span>
+                <span class="sa">f</span><span class="s2">"Expected ['H1', 'L1'] or ['H1', 'L1', 'V1'], got </span><span class="si">{</span><span class="n">ifos</span><span class="si">}</span><span class="s2">"</span>
             <span class="p">)</span>
         <span class="n">ts_dict</span> <span class="o">=</span> <span class="n">ts_dict</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="n">sample_rate</span><span class="p">)</span>
 
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saving data to file </span><span class="si">{</span><span class="n">datafile</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Saving data to file </span><span class="si">{</span><span class="n">datafile</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
-        <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">datafile</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;tc&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">event_time</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;t0&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">start</span>
+        <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">datafile</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">"tc"</span><span class="p">]</span> <span class="o">=</span> <span class="n">event_time</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">"t0"</span><span class="p">]</span> <span class="o">=</span> <span class="n">start</span>
             <span class="k">for</span> <span class="n">ifo</span> <span class="ow">in</span> <span class="n">ifos</span><span class="p">:</span>
                 <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="n">ifo</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">ts_dict</span><span class="p">[</span><span class="n">ifo</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 
@@ -351,13 +352,13 @@
         <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">ts_dict</span><span class="p">[</span><span class="n">ifo</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">ifo</span> <span class="ow">in</span> <span class="n">ifos</span><span class="p">])[</span><span class="kc">None</span><span class="p">]</span>
 
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loading data from file for event </span><span class="si">{</span><span class="n">event</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">datafile</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Loading data from file for event </span><span class="si">{</span><span class="n">event</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">datafile</span><span class="p">,</span> <span class="s2">"r"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">ifos</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
             <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">f</span><span class="p">[</span><span class="n">ifo</span><span class="p">][:]</span> <span class="k">for</span> <span class="n">ifo</span> <span class="ow">in</span> <span class="n">ifos</span><span class="p">])[</span><span class="kc">None</span><span class="p">]</span>
-            <span class="n">event_time</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;tc&quot;</span><span class="p">]</span>
-            <span class="n">t0</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;t0&quot;</span><span class="p">]</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loaded data for detectors </span><span class="si">{</span><span class="n">ifos</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">event_time</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">"tc"</span><span class="p">]</span>
+            <span class="n">t0</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">"t0"</span><span class="p">]</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Loaded data for detectors </span><span class="si">{</span><span class="n">ifos</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="n">ifos</span><span class="p">,</span> <span class="n">t0</span><span class="p">,</span> <span class="n">event_time</span>
 </pre></div>

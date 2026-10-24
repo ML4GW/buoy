@@ -9,6 +9,7 @@
   <title>Usage &mdash; buoy 0.0.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx_autodoc_typehints.css?v=057ac668" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
@@ -136,13 +137,13 @@ Use <code class="docutils literal notranslate"><span class="pre">--ifos</span></
 </section>
 <section id="multiple-events">
 <h3>Multiple events<a class="headerlink" href="#multiple-events" title="Link to this heading"></a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>buoy<span class="w"> </span>--events<span class="w"> </span><span class="s1">&#39;[&quot;GW190521&quot;, &quot;GW190828_063405&quot;, &quot;S200213t&quot;]&#39;</span><span class="w"> </span>--outdir<span class="w"> </span>./results
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>buoy<span class="w"> </span>--events<span class="w"> </span><span class="s1">'["GW190521", "GW190828_063405", "S200213t"]'</span><span class="w"> </span>--outdir<span class="w"> </span>./results
 </pre></div>
 </div>
 </section>
 <section id="all-public-events-from-an-observing-run">
 <h3>All public events from an observing run<a class="headerlink" href="#all-public-events-from-an-observing-run" title="Link to this heading"></a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>buoy<span class="w"> </span>--observing_runs<span class="w"> </span><span class="s1">&#39;[&quot;O3a&quot;]&#39;</span><span class="w"> </span>--outdir<span class="w"> </span>./results
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>buoy<span class="w"> </span>--observing_runs<span class="w"> </span><span class="s1">'["O3a"]'</span><span class="w"> </span>--outdir<span class="w"> </span>./results
 </pre></div>
 </div>
 </section>
@@ -154,14 +155,14 @@ Use <code class="docutils literal notranslate"><span class="pre">--ifos</span></
 </section>
 <section id="gps-time">
 <h3>GPS time<a class="headerlink" href="#gps-time" title="Link to this heading"></a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>buoy<span class="w"> </span>--events<span class="w"> </span><span class="m">1187008882</span>.4<span class="w"> </span>--outdir<span class="w"> </span>./results<span class="w"> </span>--ifos<span class="w"> </span><span class="s1">&#39;[&quot;H1&quot;, &quot;L1&quot;]&#39;</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>buoy<span class="w"> </span>--events<span class="w"> </span><span class="m">1187008882</span>.4<span class="w"> </span>--outdir<span class="w"> </span>./results<span class="w"> </span>--ifos<span class="w"> </span><span class="s1">'["H1", "L1"]'</span>
 </pre></div>
 </div>
 </section>
 <section id="parallel-processing">
 <h3>Parallel processing<a class="headerlink" href="#parallel-processing" title="Link to this heading"></a></h3>
 <p>Use <code class="docutils literal notranslate"><span class="pre">--max_workers</span></code> to process multiple events concurrently. Data fetching for the next event overlaps with model inference for the current one:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>buoy<span class="w"> </span>--observing_runs<span class="w"> </span><span class="s1">&#39;[&quot;O3a&quot;]&#39;</span><span class="w"> </span>--outdir<span class="w"> </span>./results<span class="w"> </span>--max_workers<span class="w"> </span><span class="m">4</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>buoy<span class="w"> </span>--observing_runs<span class="w"> </span><span class="s1">'["O3a"]'</span><span class="w"> </span>--outdir<span class="w"> </span>./results<span class="w"> </span>--max_workers<span class="w"> </span><span class="m">4</span>
 </pre></div>
 </div>
 </section>
@@ -187,17 +188,17 @@ Use <code class="docutils literal notranslate"><span class="pre">--ifos</span></
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">buoy.main</span><span class="w"> </span><span class="kn">import</span> <span class="n">main</span>
 
 <span class="c1"># Single event</span>
-<span class="n">main</span><span class="p">(</span><span class="n">events</span><span class="o">=</span><span class="s2">&quot;GW150914&quot;</span><span class="p">,</span> <span class="n">outdir</span><span class="o">=</span><span class="s2">&quot;./results&quot;</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cuda&quot;</span><span class="p">)</span>
+<span class="n">main</span><span class="p">(</span><span class="n">events</span><span class="o">=</span><span class="s2">"GW150914"</span><span class="p">,</span> <span class="n">outdir</span><span class="o">=</span><span class="s2">"./results"</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">"cuda"</span><span class="p">)</span>
 
 <span class="c1"># All public events from a run, processed in parallel</span>
-<span class="n">main</span><span class="p">(</span><span class="n">observing_runs</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;O3a&quot;</span><span class="p">],</span> <span class="n">outdir</span><span class="o">=</span><span class="s2">&quot;./results&quot;</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cuda&quot;</span><span class="p">,</span> <span class="n">max_workers</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="n">main</span><span class="p">(</span><span class="n">observing_runs</span><span class="o">=</span><span class="p">[</span><span class="s2">"O3a"</span><span class="p">],</span> <span class="n">outdir</span><span class="o">=</span><span class="s2">"./results"</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">"cuda"</span><span class="p">,</span> <span class="n">max_workers</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Models can also be instantiated directly for custom workflows:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">buoy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Aframe</span><span class="p">,</span> <span class="n">Amplfi</span>
 
-<span class="n">aframe</span> <span class="o">=</span> <span class="n">Aframe</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="s2">&quot;cuda&quot;</span><span class="p">)</span>
-<span class="n">amplfi</span> <span class="o">=</span> <span class="n">Amplfi</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="s2">&quot;path/to/config.yaml&quot;</span><span class="p">,</span> <span class="n">load_weights</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">aframe</span> <span class="o">=</span> <span class="n">Aframe</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="s2">"cuda"</span><span class="p">)</span>
+<span class="n">amplfi</span> <span class="o">=</span> <span class="n">Amplfi</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="s2">"path/to/config.yaml"</span><span class="p">,</span> <span class="n">load_weights</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">aframe</span><span class="o">.</span><span class="n">sample_rate</span><span class="p">,</span> <span class="n">amplfi</span><span class="o">.</span><span class="n">kernel_length</span><span class="p">)</span>
 </pre></div>
 </div>

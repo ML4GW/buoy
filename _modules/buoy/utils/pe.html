@@ -8,6 +8,7 @@
   <title>buoy.utils.pe &mdash; buoy 0.0.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/sphinx_autodoc_typehints.css?v=057ac668" />
 
   
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
@@ -97,7 +98,7 @@
 <div class="viewcode-block" id="get_redshifts">
 <a class="viewcode-back" href="../../../buoy.utils.html#buoy.utils.pe.get_redshifts">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_redshifts</span><span class="p">(</span><span class="n">distances</span><span class="p">,</span> <span class="n">num_pts</span><span class="o">=</span><span class="mi">10000</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Compute redshift using the Planck18 cosmology. Implementation</span>
 <span class="sd">    taken from https://git.ligo.org/emfollow/em-properties/em-bright/-/blob/main/ligo/em_bright/em_bright.py</span>
 
@@ -105,7 +106,7 @@
 <span class="sd">    redshifts by interpolating the distance-redshift relation.</span>
 <span class="sd">    This process is much faster compared to astropy.cosmology</span>
 <span class="sd">    APIs with lesser than a percent difference.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">func</span> <span class="o">=</span> <span class="n">cosmology</span><span class="o">.</span><span class="n">Planck18</span><span class="o">.</span><span class="n">luminosity_distance</span>  <span class="c1"># ty: ignore[unresolved-attribute]</span>
     <span class="n">min_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">distances</span><span class="p">)</span>
     <span class="n">max_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">distances</span><span class="p">)</span>
@@ -128,18 +129,18 @@
         <span class="n">prior</span> <span class="o">=</span> <span class="n">priors</span><span class="p">[</span><span class="n">param</span><span class="p">]</span>
         <span class="n">curr_samples</span> <span class="o">=</span> <span class="n">samples</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span>
         <span class="n">log_probs</span> <span class="o">=</span> <span class="n">prior</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">curr_samples</span><span class="p">)</span>
-        <span class="n">mask</span> <span class="o">=</span> <span class="n">log_probs</span> <span class="o">==</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;-inf&quot;</span><span class="p">)</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">log_probs</span> <span class="o">==</span> <span class="nb">float</span><span class="p">(</span><span class="s2">"-inf"</span><span class="p">)</span>
 
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Removed </span><span class="si">{</span><span class="n">mask</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span><span class="si">}</span><span class="s2"> samples for parameter &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">param</span><span class="si">}</span><span class="s2"> outside of prior range&quot;</span>
+            <span class="sa">f</span><span class="s2">"Removed </span><span class="si">{</span><span class="n">mask</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span><span class="si">}</span><span class="s2"> samples for parameter "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">param</span><span class="si">}</span><span class="s2"> outside of prior range"</span>
         <span class="p">)</span>
 
         <span class="n">net_mask</span> <span class="o">&amp;=</span> <span class="o">~</span><span class="n">mask</span>
 
     <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-        <span class="sa">f</span><span class="s2">&quot;Removed </span><span class="si">{</span><span class="p">(</span><span class="o">~</span><span class="n">net_mask</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">net_mask</span><span class="p">)</span><span class="si">}</span><span class="s2"> total samples &quot;</span>
-        <span class="sa">f</span><span class="s2">&quot;outside of prior range&quot;</span>
+        <span class="sa">f</span><span class="s2">"Removed </span><span class="si">{</span><span class="p">(</span><span class="o">~</span><span class="n">net_mask</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">net_mask</span><span class="p">)</span><span class="si">}</span><span class="s2"> total samples "</span>
+        <span class="sa">f</span><span class="s2">"outside of prior range"</span>
     <span class="p">)</span>
     <span class="n">samples</span> <span class="o">=</span> <span class="n">samples</span><span class="p">[</span><span class="n">net_mask</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">samples</span>
@@ -149,10 +150,10 @@
     <span class="n">amplfi_strain</span><span class="p">,</span>
     <span class="n">amplfi_psd_strain</span><span class="p">,</span>
     <span class="n">samples_per_event</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-    <span class="n">spectral_density</span><span class="p">:</span> <span class="s2">&quot;SpectralDensity&quot;</span><span class="p">,</span>
-    <span class="n">amplfi_whitener</span><span class="p">:</span> <span class="s2">&quot;Whiten&quot;</span><span class="p">,</span>
-    <span class="n">amplfi</span><span class="p">:</span> <span class="s2">&quot;FlowArchitecture&quot;</span><span class="p">,</span>
-    <span class="n">std_scaler</span><span class="p">:</span> <span class="s2">&quot;ChannelWiseScaler&quot;</span><span class="p">,</span>
+    <span class="n">spectral_density</span><span class="p">:</span> <span class="s2">"SpectralDensity"</span><span class="p">,</span>
+    <span class="n">amplfi_whitener</span><span class="p">:</span> <span class="s2">"Whiten"</span><span class="p">,</span>
+    <span class="n">amplfi</span><span class="p">:</span> <span class="s2">"FlowArchitecture"</span><span class="p">,</span>
+    <span class="n">std_scaler</span><span class="p">:</span> <span class="s2">"ChannelWiseScaler"</span><span class="p">,</span>
     <span class="n">device</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">,</span>
 <span class="p">):</span>
     <span class="c1"># get pe data from the buffer and whiten it</span>
@@ -167,7 +168,7 @@
     <span class="p">)</span>
     <span class="n">num_freqs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">freqs</span><span class="p">)</span>
     <span class="n">psd</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span>
-        <span class="n">psd</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">num_freqs</span><span class="p">,),</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;linear&quot;</span>
+        <span class="n">psd</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">num_freqs</span><span class="p">,),</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"linear"</span>
     <span class="p">)</span>
 
     <span class="n">mask</span> <span class="o">=</span> <span class="n">freqs</span> <span class="o">&gt;</span> <span class="n">amplfi_whitener</span><span class="o">.</span><span class="n">highpass</span>
@@ -178,14 +179,14 @@
     <span class="n">asds</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">psd</span><span class="p">)</span>
 
     <span class="c1"># sample from the model and descale back to physical units</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Starting sampling&quot;</span><span class="p">)</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Starting sampling"</span><span class="p">)</span>
     <span class="n">samples</span> <span class="o">=</span> <span class="n">amplfi</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">samples_per_event</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="p">(</span><span class="n">whitened</span><span class="p">,</span> <span class="n">asds</span><span class="p">))</span>  <span class="c1"># ty: ignore[invalid-argument-type]</span>
     <span class="n">samples</span> <span class="o">=</span> <span class="n">samples</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Descaling samples&quot;</span><span class="p">)</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Descaling samples"</span><span class="p">)</span>
     <span class="n">samples</span> <span class="o">=</span> <span class="n">samples</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
     <span class="n">descaled_samples</span> <span class="o">=</span> <span class="n">std_scaler</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">descaled_samples</span> <span class="o">=</span> <span class="n">descaled_samples</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Finished AMPLFI&quot;</span><span class="p">)</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Finished AMPLFI"</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">descaled_samples</span>
 
@@ -196,16 +197,16 @@
     <span class="n">samples</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
     <span class="n">event_time</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">inference_params</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
-    <span class="n">parameter_sampler</span><span class="p">:</span> <span class="s2">&quot;AmplfiPrior&quot;</span><span class="p">,</span>
+    <span class="n">parameter_sampler</span><span class="p">:</span> <span class="s2">"AmplfiPrior"</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AmplfiResult</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Process samples into a bilby Result object</span>
 <span class="sd">    that can be used for all downstream tasks</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">samples</span> <span class="o">=</span> <span class="n">filter_samples</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="n">parameter_sampler</span><span class="p">,</span> <span class="n">inference_params</span><span class="p">)</span>
 
-    <span class="n">phi_idx</span> <span class="o">=</span> <span class="n">inference_params</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;phi&quot;</span><span class="p">)</span>
-    <span class="n">dec_idx</span> <span class="o">=</span> <span class="n">inference_params</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;dec&quot;</span><span class="p">)</span>
+    <span class="n">phi_idx</span> <span class="o">=</span> <span class="n">inference_params</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">"phi"</span><span class="p">)</span>
+    <span class="n">dec_idx</span> <span class="o">=</span> <span class="n">inference_params</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">"dec"</span><span class="p">)</span>
     <span class="n">ra</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">remainder</span><span class="p">(</span>
         <span class="n">lal</span><span class="o">.</span><span class="n">GreenwichMeanSiderealTime</span><span class="p">(</span><span class="n">event_time</span><span class="p">)</span> <span class="o">+</span> <span class="n">samples</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">phi_idx</span><span class="p">],</span>  <span class="c1"># ty: ignore[unresolved-attribute]</span>
         <span class="n">torch</span><span class="o">.</span><span class="n">as_tensor</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">pi</span><span class="p">),</span>
@@ -215,10 +216,10 @@
     <span class="c1"># build bilby posterior object for</span>
     <span class="c1"># parameters we want to keep</span>
     <span class="n">posterior_params</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s2">&quot;chirp_mass&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;mass_ratio&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;distance&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;inclination&quot;</span><span class="p">,</span>
+        <span class="s2">"chirp_mass"</span><span class="p">,</span>
+        <span class="s2">"mass_ratio"</span><span class="p">,</span>
+        <span class="s2">"distance"</span><span class="p">,</span>
+        <span class="s2">"inclination"</span><span class="p">,</span>
     <span class="p">]</span>
 
     <span class="n">posterior</span> <span class="o">=</span> <span class="p">{}</span>
@@ -227,20 +228,20 @@
         <span class="n">posterior</span><span class="p">[</span><span class="n">param</span><span class="p">]</span> <span class="o">=</span> <span class="n">samples</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
 
     <span class="c1"># add source frame chirp mass information</span>
-    <span class="n">z_vals</span> <span class="o">=</span> <span class="n">get_redshifts</span><span class="p">(</span><span class="n">posterior</span><span class="p">[</span><span class="s2">&quot;distance&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span>
-    <span class="n">posterior</span><span class="p">[</span><span class="s2">&quot;chirp_mass_source&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">posterior</span><span class="p">[</span><span class="s2">&quot;chirp_mass&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">z_vals</span><span class="p">)</span>
+    <span class="n">z_vals</span> <span class="o">=</span> <span class="n">get_redshifts</span><span class="p">(</span><span class="n">posterior</span><span class="p">[</span><span class="s2">"distance"</span><span class="p">]</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span>
+    <span class="n">posterior</span><span class="p">[</span><span class="s2">"chirp_mass_source"</span><span class="p">]</span> <span class="o">=</span> <span class="n">posterior</span><span class="p">[</span><span class="s2">"chirp_mass"</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">z_vals</span><span class="p">)</span>
 
-    <span class="n">posterior</span><span class="p">[</span><span class="s2">&quot;ra&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ra</span>
-    <span class="n">posterior</span><span class="p">[</span><span class="s2">&quot;dec&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dec</span>
+    <span class="n">posterior</span><span class="p">[</span><span class="s2">"ra"</span><span class="p">]</span> <span class="o">=</span> <span class="n">ra</span>
+    <span class="n">posterior</span><span class="p">[</span><span class="s2">"dec"</span><span class="p">]</span> <span class="o">=</span> <span class="n">dec</span>
     <span class="n">mass_1</span><span class="p">,</span> <span class="n">mass_2</span> <span class="o">=</span> <span class="n">chirp_mass_and_mass_ratio_to_components</span><span class="p">(</span>
-        <span class="n">posterior</span><span class="p">[</span><span class="s2">&quot;chirp_mass&quot;</span><span class="p">],</span> <span class="n">posterior</span><span class="p">[</span><span class="s2">&quot;mass_ratio&quot;</span><span class="p">]</span>
+        <span class="n">posterior</span><span class="p">[</span><span class="s2">"chirp_mass"</span><span class="p">],</span> <span class="n">posterior</span><span class="p">[</span><span class="s2">"mass_ratio"</span><span class="p">]</span>
     <span class="p">)</span>
-    <span class="n">posterior</span><span class="p">[</span><span class="s2">&quot;mass_1&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mass_1</span>
-    <span class="n">posterior</span><span class="p">[</span><span class="s2">&quot;mass_2&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mass_2</span>
+    <span class="n">posterior</span><span class="p">[</span><span class="s2">"mass_1"</span><span class="p">]</span> <span class="o">=</span> <span class="n">mass_1</span>
+    <span class="n">posterior</span><span class="p">[</span><span class="s2">"mass_2"</span><span class="p">]</span> <span class="o">=</span> <span class="n">mass_2</span>
     <span class="n">posterior</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">posterior</span><span class="p">)</span>
 
     <span class="n">result</span> <span class="o">=</span> <span class="n">AmplfiResult</span><span class="p">(</span>
-        <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">event_time</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">event_time</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
         <span class="n">posterior</span><span class="o">=</span><span class="n">posterior</span><span class="p">,</span>
         <span class="n">search_parameter_keys</span><span class="o">=</span><span class="n">inference_params</span><span class="p">,</span>
     <span class="p">)</span>
